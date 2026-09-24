@@ -1,8 +1,8 @@
 #pragma once
 #include "live.h"
 namespace ota {
-constexpr const char* Version="0.8.1";
-constexpr unsigned Sequence=801;
+constexpr const char* Version="0.9.0";
+constexpr unsigned Sequence=900;
 constexpr unsigned MaxReleases=8;
 constexpr const char* Board="waveshare-lcd5b-28151";
 constexpr const char* Layout="eaglenet-ota-v1";
@@ -22,6 +22,7 @@ bool configure(const Config&);
 void status(Status&);
 bool check(const Config&);
 bool install(const Config&);
+bool installVersion(const Config&,unsigned revision,unsigned sequence);
 bool choose(unsigned index);
 void confirm();
 void service(const live::Config&);

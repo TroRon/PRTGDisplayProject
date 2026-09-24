@@ -1,5 +1,19 @@
 # Änderungen
 
+## 0.9.0 – WLAN, Einrichtungshotspot und WebAdmin
+
+- WLAN-Netzwerke suchen und antippen; anschliessend das verdeckte Passwort eingeben. WLAN kann auch vor dem Panel-Token eingerichtet werden.
+- Manueller Einrichtungshotspot **SetupPRTGDisplay** mit zufälligem WPA2-Passwort, maximal zehn Minuten und automatischer Abschaltung nach erfolgreicher WLAN-Verbindung.
+- Optionaler HTTP-WebAdmin: Einstellungen, Status, WLAN-Suche und signierte OTA-Updates inklusive Versionswahl und Downgrade im Browser.
+- Benutzer `admin`, individuelles Passwort am Display oder über USB; kein gemeinsames Standardpasswort. WebAdmin ist bei bestehenden Geräten zunächst deaktiviert.
+- Flash-Assistent mit «4 – nur WebAdmin» und `provision.py --port PORT --web-only`. WLAN, Panel und OTA bleiben dabei erhalten.
+
+**Update von 0.8.1:** Einstellungen → Firmware → Versionen prüfen → 0.9.0 → Installieren. Nach Neustart innerhalb von **120 Sekunden «Diese Version behalten»** bestätigen. Danach unter **Webzugang** ein Passwort setzen und `http://<Display-IP>` öffnen. USB ist für dieses Update nicht erforderlich. Partitionslayout, NVS und Display-/Touch-Pins bleiben unverändert; kein Aggregator-Update nötig.
+
+**Ersteinrichtung:** Ohne WLAN unter Webzugang den Hotspot starten, mit SetupPRTGDisplay verbinden und `http://192.168.4.1` öffnen. Passwort und Hinweise stehen am Display. [Schritt-für-Schritt-Anleitung](Display/SETUP.md). HTTP nur im vertrauenswürdigen lokalen Netz verwenden.
+
+**Validierung:** Hardware-Build mit ESP-IDF 5.5.0, beide PlatformIO-Profile, Modell-/LVGL-/Einstellungstests, 17 Python-USB-/Flash-Tests und Browserbedienung an synthetischen Testdaten bestanden. Signaturen und Paket-Hashes geprüft. **Die physische Abnahme von 0.9.0 (WLAN, Hotspot, WebAdmin, Speicherreserve und OTA/Rollback) steht noch aus.** 0.8.1 wurde zuvor am Gerät bestätigt; alte Releases und Simulator 0.3 bleiben unverändert.
+
 ## 0.8.1 – Nur aktive Rubriken anzeigen
 
 - Nicht konfigurierte Rubriken (`enabled: false`) verschwinden nach dem ersten empfangenen Status automatisch. Die übrigen Kacheln füllen die Zeile ohne Lücken.

@@ -5,6 +5,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "provision_policy.h"
+#include "web_admin.h"
 static const char* Tag="EAGLENET_USB";
 static void provisionTask(void*) {
     char line[2048];size_t used=0;bool overflow=false;
@@ -14,6 +15,11 @@ static void provisionTask(void*) {
         if(c=='\r')continue;
         if(c!='\n'){if(used<sizeof(line)-1)line[used++]=c;else overflow=true;continue;}
         line[used]=0;bool accepted=false;
+        if(!overflow&&strncmp(line,"WEB_CONFIG ",11)==0){
+            char password[64]={};accepted=decodeWebConfig(line+11,password,sizeof(password))&&webadmin::password(password);
+            memset(password,0,sizeof(password));memset(line,0,sizeof(line));used=0;overflow=false;
+            ESP_LOGI(Tag,"%s",accepted?"WEB_CONFIG_SAVED":"WEB_CONFIG_REJECTED");continue;
+        }
         if(!overflow&&strncmp(line,"PANEL_CONFIG ",13)==0){
             preferences::Config value;
             accepted=decodePanelConfig(line+13,value)&&preferences::save(value);

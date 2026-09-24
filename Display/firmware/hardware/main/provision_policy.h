@@ -3,6 +3,14 @@
 #include "ota_policy.h"
 #include "preferences.h"
 #include <ArduinoJson.h>
+#include "web_policy.h"
+inline bool decodeWebConfig(char* json,char* password,size_t capacity){
+    DynamicJsonDocument doc(512);
+    if(deserializeJson(doc,json)||!doc.is<JsonObject>()||doc.size()!=1||!doc["password"].is<const char*>())return false;
+    auto value=doc["password"].as<JsonString>();
+    if(value.size()>=capacity||value.size()!=strlen(value.c_str())||!webpolicy::validPassword(value.c_str()))return false;
+    memcpy(password,value.c_str(),value.size()+1);return true;
+}
 // Mutable buffer keeps decoded secrets in the caller's buffer, which is cleared after use.
 inline bool decodeConfig(char* json,live::Config& value) {
     DynamicJsonDocument doc(2048);

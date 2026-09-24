@@ -81,7 +81,7 @@ Die Manifest-Adresse dieses Repos lautet:
 https://raw.githubusercontent.com/TroRon/PRTGDisplayProject/main/Display/ota/manifest.json
 ```
 
-Das Manifest auf `main` verweist auf Version 0.8.1. Ab 0.8.0 zeigt «Versionen prüfen» einen Katalog mit Update, Downgrade und Neuinstallation. Ältere Firmware erhält weiterhin das neueste Angebot. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
+Das Manifest auf `main` verweist auf Version 0.9.0. Ab 0.8.0 zeigt «Versionen prüfen» einen Katalog mit Update, Downgrade und Neuinstallation. Ältere Firmware erhält weiterhin das neueste Angebot. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
 
 ## Datenschutz und Zugangsdaten
 
@@ -91,13 +91,11 @@ Das Display spricht bei Live-Daten mit **deinem Aggregator**; PRTG-Zugangsdaten 
 
 ## Projektstand und Mitwirkung
 
-**Aktuell 0.8.1:** Nicht aktive Rubriken werden automatisch ausgeblendet, die übrigen Kacheln nutzen den freien Platz. Update, Downgrade und Neuinstallation bleiben verfügbar. [Änderungen und Upgrade-Anleitung](CHANGELOG.md) · [USB-Paket](Display/releases/prtg-display-0.8.1.zip).
+**Aktuell 0.9.0:** WLAN-Auswahl, Einrichtungshotspot **SetupPRTGDisplay** und passwortgeschützter WebAdmin für Einstellungen und OTA. [Einrichtung](Display/SETUP.md) · [Änderungen und Upgrade](CHANGELOG.md) · [USB-Paket](Display/releases/prtg-display-0.9.0.zip).
 
-Die vollständige USB-Einrichtung erfasst auch Aggregator-Adresse und Displayname. «Nur Panel» ergänzt diese Angaben, ohne WLAN/Token oder OTA erneut einzugeben.
+Der Webzugang wird mit einem individuellen Passwort am Display oder über USB aktiviert. HTTP ist für das vertrauenswürdige lokale Netz vorgesehen. Alle Zugangsdaten und die Aggregator-Adresse richtet der Benutzer selbst ein.
 
-Der Betreiber hat Version 0.7.2 am realen LCD-5B mit funktionierender Live-Anzeige bestätigt. Ein vollständiger OTA-Installations- und Rollback-Test steht weiterhin aus.
-
-Version **0.7.1** ergänzt die USB-Konfiguration von OTA-Kanal und Direkt-URL, auch ohne erneute WLAN-Eingabe. Copyright steht im letzten Register. Die allgemeine Bereitstellung hat keine vorbelegte WLAN-SSID oder Aggregator-Adresse, einen konfigurierbaren Panelnamen und einen öffentlichen OTA-Pfad. Lokale Builds und Tests ersetzen keine Abnahme auf deinem Gerät. Sensor-Vorlagen müssen mit deiner PRTG-/Host-Version geprüft werden; die physische OTA-/Rollback-Abnahme steht noch aus.
+0.9.0 ist lokal gebaut und getestet; die Abnahme der neuen Funktionen am echten Gerät steht noch aus. 0.8.1 wurde vom Betreiber mit Live-Anzeige, OTA-Installation und ausgeblendeten inaktiven Rubriken bestätigt. Ein gezielter Rollback-Test steht weiterhin aus.
 
 Idee und Projektleitung: **Ronny Troxler**. Entwicklung mit Unterstützung von OpenAI Codex. Technische Grundlagen: Espressif ESP-IDF, Waveshare, LVGL und ArduinoJson. PRTG ist ein Produkt von Paessler; dieses Projekt ist kein offizielles Paessler-Produkt.
 

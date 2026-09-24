@@ -1,10 +1,12 @@
 # Display einrichten
 
-Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151**, 1024 × 600, 16 MB Flash und 8 MB Octal-PSRAM. Version **0.8.1** ist am realen Gerät bestätigt, einschliesslich OTA-Installation und ausgeblendeter inaktiver Rubriken. Ein gezielter Rollback-Test steht noch aus.
+Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151**, 1024 × 600, 16 MB Flash und 8 MB Octal-PSRAM. Aktuell ist **0.9.0** mit WLAN-Suche, Einrichtungshotspot und WebAdmin. Lokal gebaut und getestet; die physische Abnahme der neuen Funktionen steht noch aus. 0.8.1 ist am realen Gerät bestätigt.
+
+**[WLAN, SetupPRTGDisplay und WebAdmin einrichten](SETUP.md).** Beim Update zunächst innerhalb von 120 Sekunden «Diese Version behalten» bestätigen, danach im Register Webzugang ein Passwort setzen.
 
 ## 1. USB-Paket herunterladen
 
-Verwende [prtg-display-0.8.1.zip](releases/prtg-display-0.8.1.zip) und entpacke es vollständig. Alle folgenden Flash-Befehle laufen im entpackten Ordner. Einzelne Dateien nicht aus verschiedenen Releases mischen.
+Verwende [prtg-display-0.9.0.zip](releases/prtg-display-0.9.0.zip) und entpacke es vollständig. Alle folgenden Flash-Befehle laufen im entpackten Ordner. Einzelne Dateien nicht aus verschiedenen Releases mischen.
 
 Enthalten sind vier getrennte Images, **kein Full-Flash-Abbild**. Das Paket enthält keine WLAN-Zugangsdaten und keine Aggregator-Adresse. Es darf keine Sicherung eines bereits eingerichteten Geräts ersetzen.
 
@@ -38,7 +40,7 @@ python3 -m venv .venv
 
 Falls keine Verbindung entsteht: anderes Datenkabel/USB-Port testen; bei Bedarf BOOT gedrückt halten, RESET kurz drücken, BOOT loslassen und den Port erneut auswählen. Bei Übertragungsfehlern `flash.py --baud 115200` verwenden. Kein `erase_flash` als Routine-Schritt ausführen.
 
-Die genauen Offsets und der manuelle Befehl stehen in [FLASH.md](releases/0.8.1/FLASH.md). Bei einem bestehenden Gerät bleiben NVS-Einstellungen erhalten, sofern es das bisherige Projektlayout verwendet. Die vier Images setzen die OTA-Auswahl zurück und starten die neue Factory-Anwendung. Von Versionen vor 0.6 ist diese USB-Installation für das neue OTA-Partitionslayout erforderlich.
+Die genauen Offsets und der manuelle Befehl stehen in [FLASH.md](releases/0.9.0/FLASH.md). Bei einem bestehenden Gerät bleiben NVS-Einstellungen erhalten, sofern es das bisherige Projektlayout verwendet. Die vier Images setzen die OTA-Auswahl zurück und starten die neue Factory-Anwendung. Von Versionen vor 0.6 ist diese USB-Installation für das neue OTA-Partitionslayout erforderlich.
 
 ## 4. Verbindung und Anzeigename eintragen
 
@@ -50,6 +52,7 @@ Auf dem Display die Einstellungen öffnen:
 | Panel | HTTPS-Ursprung des eigenen Aggregators, z. B. `https://monitor.example.org`; kein API-Pfad. Optional eigener Port. Anzeigename, z. B. «Serverraum». Speichern. |
 | Systeminformationen | IP, Zeitsynchronisation, HTTP-Status, Datenquelle und Speicher prüfen |
 | Firmware | Gewünschten Update-Kanal auswählen |
+| Webzugang | WebAdmin-Passwort setzen, Browseradresse ablesen oder offline den Einrichtungshotspot starten |
 
 Der Panelname ist unabhängig von den **Systemnamen**: Systemnamen und Sensor-Zuordnungen kommen aus der Aggregator-Konfiguration. Der PRTG-API-Key wird ausschliesslich am Aggregator hinterlegt. Das Panel benötigt den dort separat erzeugten **Panel-Token**.
 
@@ -61,7 +64,7 @@ Einstellungen werden lokal in NVS gespeichert und überstehen Neustarts und gew�
 
 Der Flash-Assistent bietet diesen Schritt direkt an. Alternativ nach dem Start der Oberfläche:
 
-Ab **0.7.2** bietet der Flash-Assistent nach dem Flashen vier Möglichkeiten: später einrichten, vollständig einrichten (WLAN/Token, Panel und optional OTA), **nur OTA-Kanal** oder **nur Panel** einrichten. Bei OTA wählst du unverändert, Aggregator oder direkt öffentlich. Im Direktkanal genügt Enter für die vorbelegte Adresse dieses Repos; eine eigene HTTPS-Manifest-URL ist ebenfalls möglich. Speichern startet weder Download noch Installation.
+Ab **0.9.0** bietet der Flash-Assistent zusätzlich **«4 – nur WebAdmin»**. Seit 0.7.2 bestehen bereits diese Möglichkeiten: später einrichten, vollständig einrichten (WLAN/Token, Panel und optional OTA), **nur OTA-Kanal** oder **nur Panel** einrichten. Bei OTA wählst du unverändert, Aggregator oder direkt öffentlich. Im Direktkanal genügt Enter für die vorbelegte Adresse dieses Repos; eine eigene HTTPS-Manifest-URL ist ebenfalls möglich. Speichern startet weder Download noch Installation.
 
 ```powershell
 # Windows: COM4 durch den eigenen Port ersetzen
@@ -127,7 +130,7 @@ Ab 0.8.0: **«Versionen prüfen» → Zielversion auswählen → «Installieren�
 
 ![Versionsauswahl und Downgrade-Bestätigung](ota-versions.png)
 
-Die öffentliche Auswahl enthält 0.8.1, 0.8.0, 0.7.2, 0.7.1 und 0.7.0. Jedes Angebot wird einzeln kryptografisch geprüft. Fehlende oder ungültige Signaturen sowie falsche Boards/Layouts werden abgelehnt. WLAN, Panel- und OTA-Konfiguration bleiben gespeichert. Ältere Versionen können allerdings neuere Funktionen nicht darstellen. Nach einem Downgrade auf 0.7.x führt dessen «Update prüfen» über das weiterhin vorhandene neueste Angebot zurück auf 0.8.0.
+Die öffentliche Auswahl enthält 0.9.0, 0.8.1, 0.8.0, 0.7.2, 0.7.1 und 0.7.0. Jedes Angebot wird einzeln kryptografisch geprüft. Fehlende oder ungültige Signaturen sowie falsche Boards/Layouts werden abgelehnt. WLAN, Panel- und OTA-Konfiguration bleiben gespeichert. Ältere Versionen können allerdings neuere Funktionen nicht darstellen. Nach einem Downgrade auf 0.7.x führt dessen «Update prüfen» über das weiterhin vorhandene neueste Angebot zurück auf die aktuell veröffentlichte Version.
 
 Die vorhandene Manifest-URL bleibt gleich. Ab 0.8.0 wird im selben Verzeichnis zuerst `catalog.json` gelesen; nur bei HTTP 404 erfolgt ein Rückgriff auf das Einzelangebot. Der Katalog ist auf acht Versionen und 16 KiB begrenzt. Die Signaturen der einzelnen Angebote schützen Version und Image-Hash; der Katalog selbst ist keine signierte Vollständigkeitsgarantie. Binärdateien müssen unter ihrem SHA256-Namen im selben Verzeichnis liegen.
 
@@ -160,7 +163,7 @@ idf.py build
 
 Die ausgelieferten Images wurden nativ mit ESP-IDF 5.5.0 gebaut. Für öffentliche eigene Builds Compiler-Pfadpräfixe neutralisieren (CMake-Option `PUBLIC_SOURCE_ROOT`) und Dateien vor Veröffentlichung prüfen. Eigene OTA-Forks benötigen einen eigenen privaten Signierschlüssel ausserhalb des Repos und denselben öffentlichen Schlüssel in Firmware und Aggregator; zuerst per USB installieren. Der mitgelieferte öffentliche Schlüssel autorisiert keine selbst signierten Pakete.
 
-Weitere technische Angaben: [BUILD-INFO.json](releases/0.8.1/BUILD-INFO.json), [Lizenzen](LICENSES/).
+Weitere technische Angaben: [BUILD-INFO.json](releases/0.9.0/BUILD-INFO.json), [Lizenzen](LICENSES/).
 
 ## Aktive Rubriken ab 0.8.1
 

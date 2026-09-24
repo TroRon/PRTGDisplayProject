@@ -4,11 +4,15 @@
 #include "settings.h"
 #include "live.h"
 #include "system_info.h"
+#include "web_admin.h"
 #include <lvgl.h>
 LV_FONT_DECLARE(panel_font_14);
 LV_FONT_DECLARE(panel_font_20);
 namespace settings_impl {
-static lv_obj_t *parent,*pages[5],*tabs[5],*hardwareInfo,*runtimeInfo;
+static lv_obj_t *parent,*pages[6],*tabs[6],*hardwareInfo,*runtimeInfo;
+static lv_obj_t *scanButton,*scanPanel,*scanList,*scanNotice,*webPassword,*webRepeat,*webNotice,*webKeyboard,*hotspotInfo,*hotspotButton;
+static unsigned scanRevision=~0u;
+static live::Scan displayedScan;
 static unsigned activeTab=0;
 static lv_obj_t *otaSource,*otaUrl,*otaStatus,*otaCheck,*otaInstall,*otaKeep,*otaKeyboard;
 static bool installArmed=false;
@@ -22,11 +26,11 @@ static lv_obj_t* text(const char* caption,int x,int y,int width) {
 }
 static void close(lv_event_t*) {
     // Remove editable secret copies when leaving this screen.
-    lv_textarea_set_text(password,"");lv_textarea_set_text(token,"");
+    lv_textarea_set_text(password,"");lv_textarea_set_text(token,"");lv_textarea_set_text(webPassword,"");lv_textarea_set_text(webRepeat,"");
     lv_obj_del(screen);screen=nullptr;
 }
 static void focus(lv_event_t* e) {
-    auto* target=lv_event_get_target(e);auto* kb=(target==panelOrigin||target==panelName)?panelKeyboard:target==otaUrl?otaKeyboard:keyboard;
+    auto* target=lv_event_get_target(e);auto* kb=(target==webPassword||target==webRepeat)?webKeyboard:(target==panelOrigin||target==panelName)?panelKeyboard:target==otaUrl?otaKeyboard:keyboard;
     lv_keyboard_set_textarea(kb,target);
     lv_obj_clear_flag(kb,LV_OBJ_FLAG_HIDDEN);
 }
@@ -60,7 +64,7 @@ static void updateInstall(lv_event_t*){
 }
 static void selectTab(unsigned index) {
     activeTab=index;
-    for(unsigned i=0;i<5;++i){
+    for(unsigned i=0;i<6;++i){
         if(i==index)lv_obj_clear_flag(pages[i],LV_OBJ_FLAG_HIDDEN);else lv_obj_add_flag(pages[i],LV_OBJ_FLAG_HIDDEN);
         lv_obj_set_style_bg_color(tabs[i],lv_color_hex(i==index?0x218CE0:0x1B3248),0);
     }
@@ -84,7 +88,7 @@ static void save(lv_event_t*) {
     live::Config value;
     bool valid=copy(value.ssid,sizeof(value.ssid),ssid)&&copy(value.password,sizeof(value.password),password)&&
         copy(value.token,sizeof(value.token),token)&&copy(value.ntp,sizeof(value.ntp),ntp)&&live::validate(value);
-    if(!valid)lv_label_set_text(notice,"Bitte prüfen: SSID bis 32 Byte, Passwort 8-63 Byte, Panel-Token 16-256 Zeichen, NTP-Hostname/IP.");
+    if(!valid)lv_label_set_text(notice,"SSID bis 32 Byte, Passwort 8-63 Byte, Token leer oder 16-256 Zeichen, NTP-Hostname/IP prüfen.");
     else lv_label_set_text(notice,live::save(value)?"Übernahme angefordert. Der Verbindungsstatus zeigt das Ergebnis.":"Ein Speichervorgang läuft noch. Bitte kurz warten.");
     memset(&value,0,sizeof(value));
 }
@@ -100,26 +104,33 @@ void settingsOpen() {
     parent=screen;
     title=text("Einstellungen · WLAN und Live-Daten",24,18,780);lv_obj_set_style_text_font(title,&panel_font_20,0);
     button("Schliessen",852,12,148,close);
-    const char* captions[]={"Verbindung","System-Informationen","Copyright und Idee","Firmware","Panel"};
-    const unsigned positions[]={0,1,4,2,3}; // Copyright stays at the far right.
-    for(unsigned i=0;i<5;++i){
-        tabs[i]=button(captions[i],24+positions[i]*196,60,190,nullptr);
+    const char* captions[]={"Verbindung","System-Info","Copyright / Idee","Firmware","Panel","Webzugang"};
+    const unsigned positions[]={0,1,5,2,3,4}; // Copyright stays at the far right.
+    for(unsigned i=0;i<6;++i){
+        tabs[i]=button(captions[i],24+positions[i]*164,60,156,nullptr);
         lv_obj_add_event_cb(tabs[i],[](lv_event_t* e){selectTab((unsigned)(uintptr_t)lv_event_get_user_data(e));},LV_EVENT_CLICKED,(void*)(uintptr_t)i);
     }
-    for(unsigned i=0;i<5;++i)pages[i]=page();
+    for(unsigned i=0;i<6;++i)pages[i]=page();
     parent=pages[0];lv_obj_clear_flag(parent,LV_OBJ_FLAG_SCROLLABLE);
-    ssid=field("WLAN-Name (2.4 GHz)",value.ssid,24,0,468,32);
+    ssid=field("WLAN-Name (2.4 GHz)",value.ssid,24,0,310,32);
+    scanButton=button("WLAN suchen",344,23,148,[](lv_event_t*){lv_obj_clear_flag(scanPanel,LV_OBJ_FLAG_HIDDEN);lv_obj_move_foreground(scanPanel);if(!live::scanStart()){live::Scan s;live::scanStatus(s);scanRevision=s.revision;lv_label_set_text(scanNotice,"Suche momentan nicht möglich. Netzwerk-/OTA-Status prüfen.");}else scanRevision=~0u;});
     password=field("WLAN-Passwort",value.password,516,0,484,63,true);
-    token=field("Panel-Token (kein PRTG-Key)",value.token,24,83,468,256,true);
+    token=field("Panel-Token (später ergänzbar, kein PRTG-Key)",value.token,24,83,468,256,true);
     ntp=field("NTP-Zeitserver (Hostname oder IPv4)",value.ntp,516,83,484,127);
     statusLabel=text("",24,162,976);lv_obj_set_height(statusLabel,60);lv_label_set_long_mode(statusLabel,LV_LABEL_LONG_WRAP);
     notice=text("Speichern verbindet neu. Schliessen verwirft ungespeicherte Eingaben; Registerwechsel erhält sie.",24,224,976);
     lv_obj_set_height(notice,20);lv_label_set_long_mode(notice,LV_LABEL_LONG_WRAP);
     saveButton=button("Speichern & verbinden",24,246,300,save);
-    text("0.8.1 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
+    text("0.9.0 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
     keyboard=lv_keyboard_create(parent);lv_obj_set_align(keyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(keyboard,0,290);lv_obj_set_size(keyboard,1024,200);
     lv_obj_set_style_text_font(keyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);
     lv_keyboard_set_textarea(keyboard,ssid);
+    scanPanel=lv_obj_create(parent);lv_obj_set_pos(scanPanel,12,0);lv_obj_set_size(scanPanel,1000,480);lv_obj_set_style_pad_all(scanPanel,0,0);lv_obj_set_style_bg_color(scanPanel,lv_color_hex(0x132538),0);lv_obj_clear_flag(scanPanel,LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_text_color(scanPanel,lv_color_hex(0xE4EDF5),0);
+    parent=scanPanel;scanNotice=text("WLAN suchen …",16,16,750);
+    button("Zurück",814,6,160,[](lv_event_t*){lv_obj_add_flag(scanPanel,LV_OBJ_FLAG_HIDDEN);});
+    scanList=lv_list_create(scanPanel);lv_obj_set_pos(scanList,16,64);lv_obj_set_size(scanList,960,398);lv_obj_add_flag(scanPanel,LV_OBJ_FLAG_HIDDEN);scanRevision=~0u;
+    lv_obj_set_style_bg_color(scanList,lv_color_hex(0x132538),0);lv_obj_set_style_border_color(scanList,lv_color_hex(0x355269),0);
     parent=pages[1];
     hardwareInfo=text("",24,8,468);runtimeInfo=text("",516,8,484);
     lv_obj_set_style_text_line_space(hardwareInfo,3,0);lv_obj_set_style_text_line_space(runtimeInfo,3,0);
@@ -165,6 +176,23 @@ void settingsOpen() {
     });
     panelKeyboard=lv_keyboard_create(parent);lv_obj_set_align(panelKeyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(panelKeyboard,0,290);lv_obj_set_size(panelKeyboard,1024,200);
     lv_obj_set_style_text_font(panelKeyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);lv_keyboard_set_textarea(panelKeyboard,panelOrigin);
+    parent=pages[5];lv_obj_clear_flag(parent,LV_OBJ_FLAG_SCROLLABLE);
+    webPassword=field("Neues WebAdmin-Passwort (12-63 UTF-8-Bytes)","",24,0,468,63,true);
+    webRepeat=field("Passwort wiederholen", "",516,0,484,63,true);
+    webNotice=text("",24,84,976);lv_obj_set_height(webNotice,50);
+    hotspotInfo=text("",24,140,976);lv_obj_set_height(hotspotInfo,68);
+    text("HTTP ist unverschlüsselt: nur im vertrauenswürdigen lokalen Netz verwenden. Passwort bleibt gespeichert.",24,212,976);
+    button("Passwort speichern",24,234,230,[](lv_event_t*){
+        const char* first=lv_textarea_get_text(webPassword);const char* second=lv_textarea_get_text(webRepeat);
+        bool ok=!strcmp(first,second)&&webadmin::password(first);
+        lv_label_set_text(webNotice,ok?"Gespeichert. Browser neu anmelden.":"Nicht gespeichert. Gleiche Passwörter mit 12-63 Byte verwenden; während OTA warten.");
+        if(ok){lv_textarea_set_text(webPassword,"");lv_textarea_set_text(webRepeat,"");}
+    });
+    hotspotButton=button("Hotspot starten",264,234,210,[](lv_event_t*){if(!live::hotspotStart())lv_label_set_text(hotspotInfo,"Hotspot nicht gestartet: nur ohne WLAN-Verbindung und ohne laufendes OTA möglich.");});
+    button("Hotspot stoppen",484,234,210,[](lv_event_t*){live::hotspotStop();});
+    button("Web deaktivieren",704,234,296,[](lv_event_t*){if(webadmin::disable()){live::hotspotStop();lv_label_set_text(webNotice,"Webzugang deaktiviert. Passwort neu setzen zum Aktivieren.");}});
+    webKeyboard=lv_keyboard_create(parent);lv_obj_set_align(webKeyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(webKeyboard,0,290);lv_obj_set_size(webKeyboard,1024,200);
+    lv_obj_set_style_text_font(webKeyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);lv_keyboard_set_textarea(webKeyboard,webPassword);lv_obj_add_flag(webKeyboard,LV_OBJ_FLAG_HIDDEN);
     installArmed=false;
     selectTab(0);
     memset(&value,0,sizeof(value));settingsTick();
@@ -172,7 +200,7 @@ void settingsOpen() {
 void settingsTick() {
     using namespace settings_impl;
     if(!screen)return;
-    const char* headings[]={"Einstellungen · WLAN und Live-Daten","Einstellungen · System-Informationen","Einstellungen · Copyright und Idee","Einstellungen · Firmware-Update","Einstellungen · Panel"};
+    const char* headings[]={"Einstellungen · WLAN und Live-Daten","Einstellungen · System-Informationen","Einstellungen · Copyright und Idee","Einstellungen · Firmware-Update","Einstellungen · Panel","Einstellungen · Webzugang"};
     lv_label_set_text(title,hardwareDemoActive()?"Einstellungen · DEMO aktiv · Fiktive Daten":headings[activeTab]);
     if(activeTab==1){
         PanelSystemInfo info;readPanelSystemInfo(info);
@@ -200,6 +228,36 @@ void settingsTick() {
         enabled(otaKeep,update.ready&&!update.busy);
     }
     live::Status value;live::status(value);
+    if(activeTab==5&&!*lv_textarea_get_text(webPassword)){
+        webadmin::Status web;webadmin::status(web);
+        lv_label_set_text_fmt(webNotice,"%s\n%s%s%s",web.message,web.running&&value.wifi?"Browser: http://":"",web.running&&value.wifi?value.ip:"",web.running&&value.wifi?" · Benutzer admin":"");
+    }
+    if(activeTab==5){
+        live::Hotspot setup;live::hotspotStatus(setup);
+        if(setup.active)lv_label_set_text_fmt(hotspotInfo,"SSID: SetupPRTGDisplay · Noch %u s\nWLAN-Passwort: %s\nhttp://192.168.4.1 · Benutzer admin · %s",setup.seconds,setup.password,setup.initialAdmin?"Web-Passwort = WLAN-Passwort (bitte notieren)":"Dein bestehendes WebAdmin-Passwort verwenden");
+        else lv_label_set_text_fmt(hotspotInfo,"%s\nOhne WLAN: Hotspot starten, Smartphone verbinden, dann http://192.168.4.1 öffnen.",setup.message);
+        if(value.wifi||setup.pending||setup.active)lv_obj_add_state(hotspotButton,LV_STATE_DISABLED);else lv_obj_clear_state(hotspotButton,LV_STATE_DISABLED);
+        memset(setup.password,0,sizeof(setup.password));
+    }
+    if(activeTab==0&&!lv_obj_has_flag(scanPanel,LV_OBJ_FLAG_HIDDEN)){
+        live::Scan result;live::scanStatus(result);
+        if(scanRevision!=result.revision){
+            scanRevision=result.revision;displayedScan=result;lv_label_set_text(scanNotice,result.message);lv_obj_clean(scanList);
+            for(unsigned i=0;i<result.count;++i){
+                char caption[112];snprintf(caption,sizeof(caption),"%s · %d dBm%s",result.networks[i].ssid,result.networks[i].signal,result.networks[i].supported?"":" · nicht unterstützt");
+                auto* choice=lv_list_add_btn(scanList,nullptr,caption);
+                lv_obj_set_style_bg_color(choice,lv_color_hex(0x1B3248),0);lv_obj_set_style_text_color(choice,lv_color_hex(0xE4EDF5),0);
+                lv_obj_set_style_text_color(choice,lv_color_hex(0x8395A5),LV_STATE_DISABLED);
+                if(!result.networks[i].supported)lv_obj_add_state(choice,LV_STATE_DISABLED);
+                lv_obj_add_event_cb(choice,[](lv_event_t* e){
+                    const auto& scan=displayedScan;unsigned i=(unsigned)(uintptr_t)lv_event_get_user_data(e);if(i>=scan.count||scan.busy)return;
+                    if(strcmp(lv_textarea_get_text(ssid),scan.networks[i].ssid))lv_textarea_set_text(password,"");
+                    lv_textarea_set_text(ssid,scan.networks[i].ssid);lv_obj_add_flag(scanPanel,LV_OBJ_FLAG_HIDDEN);
+                    lv_keyboard_set_textarea(keyboard,password);lv_obj_clear_flag(keyboard,LV_OBJ_FLAG_HIDDEN);lv_obj_add_state(password,LV_STATE_FOCUSED);
+                },LV_EVENT_CLICKED,(void*)(uintptr_t)i);
+            }
+        }
+    }
     lv_obj_set_style_text_color(statusLabel,lv_color_hex(value.startupFailed?0xFF8080:0xE4EDF5),0);
     lv_label_set_text_fmt(statusLabel,"WLAN: %s   IP: %s   Zeit: %s   HTTP: %d\nAPI: %s · PRTG: %s%s\n%s",
         value.wifi?"verbunden":"getrennt",value.ip,value.clock?"synchronisiert":"wartet",value.http,live::apiText(value.api),live::sourceText(value.source),value.retryPending?" · Wiederholung folgt":"",value.message);

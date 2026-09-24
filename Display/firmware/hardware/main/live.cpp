@@ -11,6 +11,8 @@
 #include "startup_sequence.h"
 #include "source_health.h"
 #include "link_policy.h"
+#include "web_admin.h"
+#include "esp_random.h"
 #include <new>
 #include "esp_event.h"
 #include "esp_netif.h"
@@ -39,6 +41,12 @@ static panel::State* model;
 static panel::Snapshot* parsed;
 static std::atomic<int> disconnectReason{0};
 static bool sourcesUnavailable=false;
+static Scan networks;
+static std::atomic<bool> scanRequested{false};
+static Hotspot setup;
+static std::atomic<unsigned> setupCommand{0};
+static esp_netif_t* apNetif=nullptr;
+static uint32_t setupAt=0;
 struct PsramJsonAllocator {
     void* allocate(size_t size){return heap_caps_malloc(size,MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);}
     void deallocate(void* ptr){heap_caps_free(ptr);}
@@ -90,6 +98,95 @@ void status(Status& out){
 }
 void config(Config& out){if(guard)xSemaphoreTake(guard,portMAX_DELAY);out=current;if(guard)xSemaphoreGive(guard);}
 bool save(const Config& value){return ready&&!ota::busy()&&commands&&validate(value)&&xQueueSend(commands,&value,0)==pdTRUE;}
+bool scanStart(){
+    if(!ready||ota::busy())return false;
+    xSemaphoreTake(guard,portMAX_DELAY);bool ok=!networks.busy;
+    if(ok){networks.busy=true;networks.count=0;++networks.revision;snprintf(networks.message,sizeof(networks.message),"Suche nach 2.4-GHz-WLANs …");scanRequested=true;}
+    xSemaphoreGive(guard);return ok;
+}
+void scanStatus(Scan& out){if(guard)xSemaphoreTake(guard,portMAX_DELAY);out=networks;if(guard)xSemaphoreGive(guard);}
+void hotspotStatus(Hotspot& out){if(guard)xSemaphoreTake(guard,portMAX_DELAY);out=setup;if(guard)xSemaphoreGive(guard);}
+void adminChanged(){if(guard)xSemaphoreTake(guard,portMAX_DELAY);setup.initialAdmin=false;if(guard)xSemaphoreGive(guard);}
+bool hotspotStart(){
+    if(!ready||connected||ota::busy())return false;
+    xSemaphoreTake(guard,portMAX_DELAY);bool allowed=!setup.active&&!setup.pending;
+    if(allowed)setup.pending=true;
+    xSemaphoreGive(guard);if(!allowed)return false;
+    char password[33];unsigned char random[16];esp_fill_random(random,sizeof(random));
+    for(unsigned i=0;i<16;++i)snprintf(password+2*i,3,"%02x",random[i]);
+    webadmin::Status web;webadmin::status(web);bool initial=!web.configured;
+    if(initial&&!webadmin::password(password)){xSemaphoreTake(guard,portMAX_DELAY);setup.pending=false;snprintf(setup.message,sizeof(setup.message),"WebAdmin-Passwort konnte nicht gespeichert werden.");xSemaphoreGive(guard);memset(password,0,sizeof(password));return false;}
+    xSemaphoreTake(guard,portMAX_DELAY);snprintf(setup.password,sizeof(setup.password),"%s",password);setup.initialAdmin=initial;snprintf(setup.message,sizeof(setup.message),"Einrichtungshotspot wird gestartet …");xSemaphoreGive(guard);
+    memset(password,0,sizeof(password));memset(random,0,sizeof(random));setupCommand=1;return true;
+}
+void hotspotStop(){setupCommand=2;}
+static void setupService(){
+    unsigned command=setupCommand.exchange(0);Hotspot current;hotspotStatus(current);
+    if(command==2&&!current.active){xSemaphoreTake(guard,portMAX_DELAY);setup.pending=false;memset(setup.password,0,sizeof(setup.password));snprintf(setup.message,sizeof(setup.message),"Einrichtungshotspot ausgeschaltet");xSemaphoreGive(guard);return;}
+    if(command==1){
+        esp_err_t result=ESP_OK;
+        if(!apNetif){
+            esp_netif_config_t config=ESP_NETIF_DEFAULT_WIFI_AP();apNetif=esp_netif_new(&config);
+            if(!apNetif)result=ESP_ERR_NO_MEM;
+            else if((result=esp_netif_attach_wifi_ap(apNetif))==ESP_OK)result=esp_wifi_set_default_wifi_ap_handlers();
+            if(result!=ESP_OK&&apNetif){esp_netif_destroy_default_wifi(apNetif);apNetif=nullptr;}
+        }
+        if(result==ESP_OK){
+            wifi_config_t config={};snprintf((char*)config.ap.ssid,sizeof(config.ap.ssid),"SetupPRTGDisplay");config.ap.ssid_len=strlen("SetupPRTGDisplay");
+            snprintf((char*)config.ap.password,sizeof(config.ap.password),"%s",current.password);config.ap.authmode=WIFI_AUTH_WPA2_PSK;config.ap.max_connection=2;config.ap.channel=1;config.ap.pmf_cfg.capable=true;
+            // Configure before starting the AP, never expose a temporary open default AP.
+            esp_wifi_stop();connected=false;result=esp_wifi_set_mode(WIFI_MODE_APSTA);
+            if(result==ESP_OK)result=esp_wifi_set_config(WIFI_IF_AP,&config);
+            if(result==ESP_OK)result=esp_wifi_start();
+            memset(&config,0,sizeof(config));
+        }
+        if(result!=ESP_OK){esp_wifi_stop();if(esp_wifi_set_mode(WIFI_MODE_STA)==ESP_OK)esp_wifi_start();}
+        setupAt=millis();xSemaphoreTake(guard,portMAX_DELAY);setup.pending=false;setup.active=result==ESP_OK;setup.seconds=setup.active?600:0;
+        snprintf(setup.message,sizeof(setup.message),setup.active?"SetupPRTGDisplay bereit · http://192.168.4.1":"Hotspot-Start fehlgeschlagen; WebAdmin-Passwort bleibt gespeichert.");xSemaphoreGive(guard);
+        ESP_LOGI(Tag,"Setup hotspot start result=%s",esp_err_to_name(result));
+    }
+    hotspotStatus(current);
+    if(current.active){
+        unsigned elapsed=uint32_t(millis()-setupAt)/1000;
+        if(command==2||connected||elapsed>=600){
+            auto stopped=esp_wifi_set_mode(WIFI_MODE_STA);
+            if(stopped!=ESP_OK){setupCommand=2;ESP_LOGW(Tag,"Setup hotspot stop failed; retry pending");return;}
+            xSemaphoreTake(guard,portMAX_DELAY);setup.active=false;setup.seconds=0;memset(setup.password,0,sizeof(setup.password));snprintf(setup.message,sizeof(setup.message),connected?"WLAN verbunden; Hotspot ausgeschaltet. Neue IP am Display prüfen.":"Einrichtungshotspot ausgeschaltet");xSemaphoreGive(guard);
+            ESP_LOGI(Tag,"Setup hotspot stopped");
+        }else{xSemaphoreTake(guard,portMAX_DELAY);setup.seconds=600-elapsed;xSemaphoreGive(guard);}
+    }
+    memset(&current,0,sizeof(current));
+}
+static void scanNetworks(bool running,bool configured){
+    Scan result;result.revision=0;
+    esp_err_t error=ESP_ERR_INVALID_STATE;
+    if(running){
+        // Connecting and explicit scans compete in the driver. Pause reconnect only when offline.
+        if(!connected)esp_wifi_disconnect();
+        wifi_scan_config_t cfg={};cfg.show_hidden=false;cfg.scan_time.active.max=120;
+        error=esp_wifi_scan_start(&cfg,true);
+        if(error==ESP_OK){
+            auto* records=(wifi_ap_record_t*)heap_caps_calloc(MaxNetworks,sizeof(wifi_ap_record_t),MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);
+            if(records){
+                uint16_t count=MaxNetworks;error=esp_wifi_scan_get_ap_records(&count,records);
+                if(error==ESP_OK)for(unsigned i=0;i<count;++i){
+                    records[i].ssid[32]=0;const char* name=(const char*)records[i].ssid;bool safe=*name;
+                    for(const unsigned char* c=records[i].ssid;*c;++c)if(*c<32||*c==127)safe=false;
+                    bool duplicate=false;for(unsigned j=0;j<result.count;++j)if(!strcmp(result.networks[j].ssid,name))duplicate=true;
+                    if(!safe||duplicate)continue;
+                    auto& n=result.networks[result.count++];snprintf(n.ssid,sizeof(n.ssid),"%s",name);n.signal=records[i].rssi;
+                    n.supported=records[i].authmode==WIFI_AUTH_WPA2_PSK||records[i].authmode==WIFI_AUTH_WPA_WPA2_PSK||records[i].authmode==WIFI_AUTH_WPA3_PSK||records[i].authmode==WIFI_AUTH_WPA2_WPA3_PSK;
+                }
+                heap_caps_free(records);
+            }else error=ESP_ERR_NO_MEM;
+            esp_wifi_clear_ap_list();
+        }
+        if(configured&&!connected)esp_wifi_connect();
+    }
+    snprintf(result.message,sizeof(result.message),error==ESP_OK?"%u WLANs gefunden · WPA2/WPA3 Personal":"Suche fehlgeschlagen; erneut versuchen oder manuell eingeben",result.count);
+    xSemaphoreTake(guard,portMAX_DELAY);result.revision=networks.revision+1;networks=result;xSemaphoreGive(guard);
+    ESP_LOGI(Tag,"WLAN scan done: result=%s count=%u",esp_err_to_name(error),result.count);
+}
 bool read(panel::Snapshot& value,bool& unavailable){
     if(!ready||!updates)return false;
     xSemaphoreTake(guard,portMAX_DELAY);
@@ -127,6 +224,7 @@ static bool apply(const Config& value) {
     esp_wifi_connect();return true;
 }
 static bool request(const Config& value,bool retry) {
+    if(!*value.token){fail("WLAN bereit - Panel-Token in Einstellungen ergänzen",0,ApiState::Waiting);return false;}
     char endpoint[384];
     if(!preferences::endpoint("/api/v1/health",endpoint,sizeof(endpoint))){fail("Im Register Panel die Aggregator-Adresse eintragen",0,ApiState::Waiting);return false;}
     const int64_t started=esp_timer_get_time();
@@ -205,7 +303,7 @@ static bool request(const Config& value,bool retry) {
 }
 static void worker(void*) {
     Config active;config(active);bool configured=validate(active),running=false;
-    if(configured)running=apply(active);
+    if(configured)running=apply(active);else running=esp_wifi_start()==ESP_OK;
     uint32_t lastPoll=millis()-15000,lastConnect=millis();
     bool previousWifi=false;link_policy::RetryPolicy retryPolicy;
     for(;;) {
@@ -220,6 +318,8 @@ static void worker(void*) {
             }
         }
         memset(&candidate,0,sizeof(candidate));
+        setupService();
+        if(scanRequested.exchange(false))scanNetworks(running,configured);
         ota::service(active);
         const uint32_t now=millis();
         if(connected!=previousWifi){previousWifi=connected;ESP_LOGI(Tag,"WLAN %s reason=%d",previousWifi?"connected":"disconnected",(int)disconnectReason.load());retryPolicy.reset();lastPoll=now-link_policy::PollMs;}

@@ -9,3 +9,5 @@ Read WORKFLOW.md before making changes here. Develop candidates outside this pub
 Configure `git config core.hooksPath .githooks`. After the user approves, bind the local `.git/publication-approved-commit` marker to the exact reviewed HEAD. Never create or refresh it based on inferred approval. Never bypass the hook. GitHub API publishing also requires the same explicit approval. Sources, existing release bytes and OTA URLs must remain stable unless the approved scope explicitly changes them.
 
 Current hardware acceptance: the operator confirmed 0.8.1 OTA installation and inactive-category filtering on 24 September 2026. This does not establish a tested rollback or authorize a future release.
+
+Published 0.9.0: Wi-Fi scan, manual SetupPRTGDisplay hotspot and optional HTTP WebAdmin. Local builds/tests passed; physical 0.9.0 acceptance remains pending. The operator explicitly approved this publication; future changes still require fresh approval.

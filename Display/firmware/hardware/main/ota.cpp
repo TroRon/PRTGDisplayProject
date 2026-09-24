@@ -91,6 +91,18 @@ void confirm(){
  if(ok){command=3;state.busy=true;}
  unlock();
 }
+bool installVersion(const Config& c,unsigned revision,unsigned sequence){
+ if(!initialized)return false;
+ char manifest[384];if(!validConfig(c)||!manifestUrl(c,manifest,sizeof(manifest)))return false;
+ lock();
+ bool ok=state.ready&&!state.busy&&!state.pending&&state.revision==revision&&
+   !strcmp(manifest,checkedManifest)&&c.direct==selected.direct&&(!c.direct||!strcmp(c.url,selected.url));
+ unsigned index=state.count;for(unsigned i=0;i<state.count;++i)if(releases[i].sequence==sequence){index=i;break;}
+ ok=ok&&index<state.count;
+ if(ok){state.chosen=index;offer=releases[index];state.targetSequence=offer.sequence;state.targetSize=offer.size;
+  snprintf(state.offered,sizeof(state.offered),"%s",offer.version);state.busy=true;state.available=false;state.progress=0;command=2;}
+ unlock();return ok;
+}
 static esp_http_client_handle_t open(const char* url,const live::Config& credentials,bool authenticated,int* http=nullptr){
  esp_http_client_config_t c={};c.url=url;c.crt_bundle_attach=esp_crt_bundle_attach;
  c.timeout_ms=10000;c.disable_auto_redirect=true;c.buffer_size=2048;c.buffer_size_tx=1024;
