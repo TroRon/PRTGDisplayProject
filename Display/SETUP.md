@@ -1,6 +1,8 @@
 # Firmware 1.0.0 – WLAN-Auswahl, Einrichtungshotspot und WebAdmin
 
-**1.0.0, Revision 2 (R2).** Freigegebenes Ersatzpaket. Firmware-Version 1.0.0 und OTA-Sequenz 10000 bleiben unverändert; Git-Quellstand und GitHub-Release verwenden zur eindeutigen Zuordnung den Tag `v1.0.0-r2`. Lokale Tests ersetzen den Test auf dem echten Waveshare LCD-5B nicht. Die bisherigen Releases einschliesslich 0.9.1 bleiben unverändert.
+[Gesamtes Projekt einrichten](../docs/HANDBUCH.md) · [Projektstand / Abnahme](../docs/PROJEKTSTATUS.md). Die folgenden Schritte betreffen den **Display-WebAdmin**, nicht den separaten Aggregator-WebAdmin.
+
+**Aktuell 1.0.0, Revision 3 (R3).** Freigegebenes Ersatzpaket. Firmware-Version 1.0.0 und OTA-Sequenz 10000 bleiben unverändert; Git-Quellstand und GitHub-Release verwenden zur eindeutigen Zuordnung den Tag `v1.0.0-r3`. Lokale Tests ersetzen den Test auf dem echten Waveshare LCD-5B nicht. Die bisherigen Releases einschliesslich 0.9.1 bleiben unverändert.
 
 ## WLAN direkt am Display auswählen
 
@@ -15,7 +17,7 @@ Es werden bis zu 20 sichtbare Netzwerke mit Signalstärke angezeigt. Doppelte Na
 
 1. Bei Erstinstallation ohne gespeicherte WLAN-Konfiguration sowie nach einem Werksreset startet **SetupPRTGDisplay automatisch**. Das Display öffnet direkt Webzugang. Später ist **Einstellungen → Webzugang → Hotspot starten** weiterhin möglich.
 2. Mit **`SetupPRTGDisplay`** verbinden. Das zufällig erzeugte WPA2-Passwort steht auf dem Display. Es wird bei jedem Start neu erzeugt und nicht protokolliert.
-3. Im Browser ausdrücklich **`http://192.168.4.1`** öffnen. Der Hotspot hat keinen Internetzugang und kein automatisches Captive Portal. Falls das Smartphone nachfragt, mit diesem WLAN verbunden bleiben.
+3. Im Browser ausdrücklich **`http://192.168.4.1`** öffnen. Der Hotspot hat keinen Internetzugang. Ab R3 können QR-Code und Captive Portal die Verbindung/Anmeldeseite öffnen; das automatische Öffnen hängt vom Handy ab. Die manuelle Browseradresse bleibt der Rückweg. Falls das Smartphone nachfragt, mit diesem WLAN verbunden bleiben.
 4. Benutzer **`admin`**. Das initiale **12-stellige Zahlenpasswort** steht oben im Register Webzugang. Es ist vom WLAN-Passwort des Hotspots unabhängig. Bei einem bereits eingerichteten Gerät das bisherige WebAdmin-Passwort verwenden.
 5. Zuerst gegebenenfalls WebAdmin-Passwort ändern und erneut anmelden. Panelname und Aggregator-Adresse eintragen. Dann WLAN suchen, auswählen, Passwort und optional Panel-Token eingeben und speichern.
 6. Bei erfolgreicher WLAN-Verbindung schaltet sich der Hotspot automatisch ab. Er endet spätestens nach etwa zehn Minuten; auch **Hotspot stoppen** ist möglich. Eine erneute Aktivierung am Display ist möglich, solange keine normale WLAN-Verbindung besteht. Der automatische Start erfolgt einmal pro Start eines unkonfigurierten Geräts. Nach Ablauf oder manuellem Stoppen wird er in diesem Startvorgang nicht automatisch erneut gestartet.

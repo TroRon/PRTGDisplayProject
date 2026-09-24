@@ -1,0 +1,41 @@
+import {generateKeyPairSync,sign,createHash} from 'node:crypto';
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,rm,mkdir} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createAdminAuth} from '../src/admin-auth.mjs';
+import {createGithubFirmware} from '../src/github-firmware.mjs';
+import {createAdmin} from '../src/admin.mjs';
+import {createApi} from '../src/server.mjs';
+const token='synthetic-administrator-'+ 'a'.repeat(32);
+test('password bootstrap, hashed persistence, session expiry/revocation, failed save and restart',async t=>{
+ const directory=await mkdtemp(join(tmpdir(),'prtg-auth-'));t.after(()=>rm(directory,{recursive:true,force:true}));let clock=0;
+ const auth=await createAdminAuth({directory,token,now:()=>clock});assert.equal(await auth.login('wrong'),null);const first=await auth.login(token);assert(auth.authorize('Bearer '+first));
+ const second=await auth.change({password:'12345'});assert(!auth.authorize('Bearer '+first));assert(auth.authorize('Bearer '+second));assert.equal(await auth.login(token),null);
+ assert(auth.authorize('Bearer '+token));const file=await readFile(join(directory,'password.json'),'utf8');assert(!file.includes('12345'));assert(!file.includes(token));
+ await assert.rejects(auth.change({currentPassword:'wrong',password:'54321'}),/CURRENT/);await assert.rejects(auth.change({currentPassword:'12345',password:'1234'}),/POLICY/);
+ const restarted=await createAdminAuth({directory,token,now:()=>clock});assert(!restarted.authorize('Bearer '+second));const active=await restarted.login('12345');assert(active);clock=900001;assert(!restarted.authorize('Bearer '+active));
+ const login=await restarted.login('12345');restarted.logout('Bearer '+login);assert(!restarted.authorize('Bearer '+login));
+ await rm(join(directory,'password.json'));await mkdir(join(directory,'password.json'));await assert.rejects(restarted.change({currentPassword:'12345',password:'54321'}));assert(await restarted.login('12345'));
+ await assert.rejects(createAdminAuth({directory,token}));
+});
+test('HTTP password login requires origin, revokes sessions and rate limits failed login',async t=>{
+ const directory=await mkdtemp(join(tmpdir(),'prtg-auth-http-'));t.after(()=>rm(directory,{recursive:true,force:true}));const auth=await createAdminAuth({directory,token});
+ const server=createApi({snapshot:()=>({})});await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>server.close(r)));const origin='http://127.0.0.1:'+server.address().port;
+ server.removeAllListeners('request');server.on('request',createAdmin({origin,token,panelToken:'panel',auth,store:{view:()=>({revision:1})},runtime:{}}));
+ const call=(path,body,bearer='',withOrigin=true,method='POST')=>fetch(origin+'/api/admin/'+path,{method,headers:{'Content-Type':'application/json',...(withOrigin?{Origin:origin}:{}),Authorization:'Bearer '+bearer},body:body===undefined?undefined:JSON.stringify(body)});
+ assert.equal((await call('login',{credential:token},'',false)).status,403);
+ const session=await(await call('login',{credential:token})).json();assert(session.token);
+ const changed=await(await call('password',{password:'12345'},session.token,true,'PUT')).json();assert(changed.token);
+ assert.equal((await call('config',undefined,session.token,true,'GET')).status,401);assert.equal((await call('config',undefined,changed.token,true,'GET')).status,200);
+ for(let i=0;i<10;i++)assert.equal((await call('login',{credential:'wrong'})).status,401);assert.equal((await call('login',{credential:'12345'})).status,429);
+});
+test('GitHub signed catalog and exact image import; altered signature, oversize, source and changed offer rejected',async()=>{
+ const keys=generateKeyPairSync('rsa',{modulusLength:2048});const image=Buffer.alloc(1024);image[0]=0xe9;image.writeUInt16LE(9,12);image.writeUInt32LE(0xabcd5432,32);image.write('1.0.0',48);image.write('eaglenet_lcd5b',80);
+ const m={schema:1,board:'waveshare-lcd5b-28151',layout:'eaglenet-ota-v1',version:'1.0.0',sequence:10000,size:image.length,sha256:createHash('sha256').update(image).digest('hex')};const payload=Buffer.from(JSON.stringify(m));const parsed={schema:1,releases:[{payload:payload.toString('base64'),signature:sign('RSA-SHA256',payload,keys.privateKey).toString('base64')}]};const catalog=Buffer.from(JSON.stringify(parsed));
+ let mode='valid';const client=createGithubFirmware({key:keys.publicKey,fetchImpl:async(url,opts)=>{assert.equal(opts.redirect,'error');assert.equal(new URL(url).hostname,'raw.githubusercontent.com');return new Response(new URL(url).pathname.endsWith('catalog.json')?(mode==='large'?Buffer.alloc(16385):mode==='invalid'?JSON.stringify({...parsed,releases:[{...parsed.releases[0],signature:'invalid'}]}):catalog):mode==='image'?Buffer.alloc(image.length):image);}});
+ assert.equal((await client.list()).length,1);assert((await client.download(m.sha256)).length>image.length);
+ await assert.rejects(client.download('0'.repeat(64)));for(mode of ['large','invalid'])await assert.rejects(client.list());mode='image';await assert.rejects(client.download(m.sha256));
+ assert.throws(()=>createGithubFirmware({url:'https://127.0.0.1/catalog.json'}));assert.throws(()=>createGithubFirmware({url:'https://raw.githubusercontent.com.evil.test/a/b/main/catalog.json'}));
+});

@@ -1,5 +1,7 @@
 # Display einrichten
 
+[Komplette Inbetriebnahme](../docs/HANDBUCH.md) · [Bedienung / Updates / Fehlerhilfe](../docs/BETRIEB.md) · [Projektstand](../docs/PROJEKTSTATUS.md). Aggregator- und Display-Versionen sind unabhängig; Aggregator 1.1.0 erfordert keinen neuen Firmware-Build.
+
 Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151**, 1024 × 600, 16 MB Flash und 8 MB Octal-PSRAM. Aktuell ist **1.0.0 Revision 3** mit WLAN-QR-Code, Captive Portal, WLAN-Suche und WebAdmin. Lokal gebaut und getestet; die physische Abnahme der neuen Funktionen steht noch aus. 0.8.1 ist am realen Gerät bestätigt.
 
 **[WLAN, SetupPRTGDisplay und WebAdmin einrichten](SETUP.md).** Beim Update zunächst innerhalb von 120 Sekunden «Diese Version behalten» bestätigen, danach im Register Webzugang das automatisch erzeugte zwölfstellige Zahlenpasswort ablesen. Bereits eigene Passwörter bleiben erhalten; Benutzer: `admin`.
@@ -169,7 +171,7 @@ Weitere technische Angaben: [BUILD-INFO.json](releases/1.0.0/BUILD-INFO.json), [
 
 ## Aktive Rubriken ab 0.8.1
 
-Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktive Rubriken mit Fehlern oder unbekannten Daten bleiben sichtbar. Die übrigen Kacheln verteilen sich gleichmässig. Hinweise bleiben erreichbar. Im Demo-Modus sind alle fiktiven Beispielrubriken aktiv. Dafür sind keine neuen Einstellungen und kein Aggregator-Update nötig. Die aktuelle Version 1.0.0 kann über OTA installiert werden; nach Neustart innerhalb von 120 Sekunden bestätigen. Der Betreiber hat diese Version auf dem realen Display bestätigt.
+Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktive Rubriken mit Fehlern oder unbekannten Daten bleiben sichtbar. Die übrigen Kacheln verteilen sich gleichmässig. Hinweise bleiben erreichbar. Im Demo-Modus sind alle fiktiven Beispielrubriken aktiv. Dafür sind keine neuen Einstellungen und kein Aggregator-Update nötig. Die aktuelle Version 1.0.0 kann über OTA installiert werden; nach Neustart innerhalb von 120 Sekunden bestätigen. Der Betreiber hat das Ausblenden inaktiver Rubriken unter 0.8.1 auf dem realen Display bestätigt; dies ist keine Abnahme aller neuen 1.0.0-R3-Funktionen.
 
 ## Werksreset und Info ab 1.0.0
 

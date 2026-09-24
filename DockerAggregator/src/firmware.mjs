@@ -6,23 +6,27 @@ import { readFileSync } from 'node:fs';
 const MAX = 0x400000 + 8196;
 const publicKey = readFileSync(new URL('./ota-public.pem', import.meta.url));
 const tokenOk = (header, token) => !!token && timingSafeEqual(createHash('sha256').update(header || '').digest(), createHash('sha256').update(`Bearer ${token}`).digest());
-export function validatePackage(data, key = publicKey) {
-  if (data.length < 5 || data.length > MAX) throw Error('SIZE');
-  const n = data.readUInt32BE(0);
-  if (!n || n > 8192 || 4 + n >= data.length) throw Error('HEADER');
-  const envelope = data.subarray(4, 4 + n);
+export function validateEnvelope(envelope,key=publicKey) {
   const wrapper = JSON.parse(envelope);
   if (typeof wrapper.payload !== 'string' || typeof wrapper.signature !== 'string') throw Error('ENVELOPE');
   const payload = Buffer.from(wrapper.payload, 'base64'), signature = Buffer.from(wrapper.signature, 'base64');
   if (payload.length > 2047 || signature.length !== 256 || !verify('RSA-SHA256', payload, key, signature)) throw Error('SIGNATURE');
   const m = JSON.parse(payload);
   const parts=typeof m.version==='string'?m.version.split('.').map(Number):[];
-  const image = data.subarray(4 + n);
   if (m.schema !== 1 || m.board !== 'waveshare-lcd5b-28151' || m.layout !== 'eaglenet-ota-v1' ||
       !/^[0-9]+\.[0-9]+\.[0-9]+$/.test(m.version) || m.version.length > 31 || !Number.isInteger(m.sequence) || m.sequence < 1 || m.sequence > 0xffffffff ||
-      !Number.isInteger(m.size) || m.size < 1024 || m.size > 0x400000 || image.length !== m.size ||
-      !/^[a-f0-9]{64}$/.test(m.sha256) || createHash('sha256').update(image).digest('hex') !== m.sha256) throw Error('METADATA');
+      !Number.isInteger(m.size) || m.size < 1024 || m.size > 0x400000 ||
+      !/^[a-f0-9]{64}$/.test(m.sha256)) throw Error('METADATA');
   if(parts.length!==3||parts.join('.')!==m.version||parts[0]>429495||parts[1]>99||parts[2]>99||m.sequence!==parts[0]*10000+parts[1]*100+parts[2])throw Error('VERSION');
+  return m;
+}
+export function validatePackage(data, key = publicKey) {
+  if (data.length < 5 || data.length > MAX) throw Error('SIZE');
+  const n = data.readUInt32BE(0);
+  if (!n || n > 8192 || 4 + n >= data.length) throw Error('HEADER');
+  const envelope = data.subarray(4, 4 + n);
+  const m = validateEnvelope(envelope,key), image=data.subarray(4+n);
+  if(image.length!==m.size||createHash('sha256').update(image).digest('hex')!==m.sha256)throw Error('HASH');
   if (image[0] !== 0xe9 || image.readUInt16LE(12) !== 9 || image.readUInt32LE(32) !== 0xabcd5432 ||
       image.subarray(48, 80).toString().split('\0')[0] !== m.version || image.subarray(80, 112).toString().split('\0')[0] !== 'eaglenet_lcd5b') throw Error('BOARD');
   return { envelope, image, manifest: m };

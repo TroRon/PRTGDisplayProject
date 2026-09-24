@@ -24,3 +24,9 @@ Explicit operator approval for 1.0.0 R3: QR setup and AP-only captive portal, do
 
 
 Aggregator-WebAdmin 1.0.0: aktuelle ausdrückliche Freigabe für diesen geprüften Stand, Commit/Push beider Repos und produktives Deployment erteilt. Keine Änderung an Display-Firmware oder OTA-Direktkanal. Künftige Veröffentlichungen benötigen erneut Freigabe.
+
+
+Dokumentationsauftrag 24.09.2026: gesamtes Projekt privat und öffentlich mit neutralen Beispielen/Screenshots dokumentieren. Öffentliche Dokumentationsdateien ausdrücklich autorisiert; keine daraus abgeleitete Freigabe für neue Softwareübernahme, Commit/Push oder Deployment. Aktueller Status in docs/PROJEKTSTATUS.md.
+
+
+Aktuelle ausdrückliche Freigabe: «Du kannst pushen und deployen» für Aggregator 1.1.0 samt gesamter privater/öffentlicher Projektdokumentation und synthetischen Bildern. Commit/Push beider Repos und Installation im bestehenden Stack autorisiert. Display-BINs und öffentlicher OTA-Direktkanal unverändert.

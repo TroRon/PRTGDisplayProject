@@ -1,5 +1,7 @@
 # Entwicklung und Freigabe
 
+**Aktuelle Freigabe:** Aggregator 1.1.0 samt gesamter Dokumentation und synthetischen Bildern ausdrücklich für Übernahme, Commit/Push beider Repos und Deployment freigegeben. Künftige Änderungen benötigen erneut Freigabe. [Projektstand](docs/PROJEKTSTATUS.md).
+
 Dieses Repository ist die öffentliche Distribution mit drei Bereichen: **PRTG Sensoren**, **DockerAggregator** und **Display**. Es enthält geprüfte Quellen, neutrale Vorlagen, Anleitungen und unveränderliche Releases. Es ist kein Arbeitsverzeichnis für Experimente, lokale Konfiguration oder Zugangsdaten.
 
 ## Verbindliche Freigabe

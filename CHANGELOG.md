@@ -1,5 +1,18 @@
 # Änderungen
 
+## Aggregator 1.1.0 – Systeme, Passwort und GitHub
+
+- Reihenfolge speichern und Systeme samt Kanaldefinitionen kopieren; Kopien erhalten eigene IDs und leere PRTG-Sensor-IDs.
+- Eigenes Passwort, sichere Hashspeicherung und widerrufbare Browser-Sitzungen; technisches OTA-Token bleibt gültig.
+- Signierte GitHub-Angebote anzeigen und nach Bestätigung im Aggregator bereitstellen.
+- Vollständiges Projekthandbuch, Betrieb, Entwicklung und aktueller Projektstatus mit synthetischen Bildern.
+
+31 private / 16 öffentliche Tests und Desktop-/Mobilbrowser geprüft. Produktive Referenzinstallation aktualisiert; keine Änderung an Display-Firmware 1.0.0 R3 und keine neue physische OTA-Abnahme.
+
+## Dokumentation des gesamten Projekts – 24.09.2026
+
+Durchgängiges Projekthandbuch, Betrieb/Backup/Fehlerhilfe, Architektur/Entwicklung und Statusübersicht. R3-Einstiege und 50-Sekunden-Demo korrigiert. Aggregator 1.1.0 als noch unveröffentlichter Kandidat samt synthetischen Vorschauen dokumentiert. Keine Änderung der Software, Release-BINs oder OTA-Angebote durch dieses Dokumentationsupdate.
+
 ## Aggregator 1.0.0 – WebAdmin
 
 Systemnamen, Kategorien, Sensoren und PRTG-Verbindung im Browser konfigurieren. Signierte Firmware-Pakete hochladen und am Display über den Aggregator auswählen. Eigenständiger Administrator-Zugang und persistente Einstellungen. [Einrichtung und Bedienung](DockerAggregator/WEBADMIN.md). Display-Firmware 1.0.0 R3 unverändert.

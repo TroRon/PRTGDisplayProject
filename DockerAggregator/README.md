@@ -1,6 +1,8 @@
-# Aggregator 1.0.0 – WebAdmin
+# Aggregator 1.1.0 – WebAdmin
 
-Freigegebener Aggregator 1.0.0 mit lokal geprüfter Weboberfläche und HTTP-API. WebAdmin unter **/admin**: Systeme/PRTG konfigurieren, signierte Firmware hochladen und am Display über den Kanal Aggregator auswählen. [Bedienung und Installation](WEBADMIN.md).
+[Gesamteinrichtung](../docs/HANDBUCH.md) · [Betrieb / Zugangsdaten / Backups](../docs/BETRIEB.md) · [Projektstand](../docs/PROJEKTSTATUS.md) · [Bedienung Aggregator 1.1.0](VERSION-1.1.md). Die folgenden Installationsschritte gelten für den veröffentlichten Aggregator 1.1.0.
+
+Freigegebener Aggregator 1.1.0 mit lokal geprüfter Weboberfläche und HTTP-API. WebAdmin unter **/admin**: Systeme/PRTG konfigurieren, signierte Firmware hochladen und am Display über den Kanal Aggregator auswählen. [Bedienung und Installation](WEBADMIN.md).
 
 `ADMIN_ORIGIN` in `.env` setzen und `prepare-storage.sh` für den neuen Verwaltungsordner ausführen. Bestehende schreibgeschützte Konfigurations- und Secret-Mounts bleiben erhalten. Web-Einstellungen werden separat in `admin/settings.json` gespeichert und haben nach dem ersten Speichern Vorrang. PRTG-Token lässt sich im WebAdmin verdeckt ersetzen. Administrator- und Panel-Token bleiben Installations-Secrets.
 
@@ -17,11 +19,13 @@ cp .env.example .env
 sudo bash prepare-storage.sh ./data DEIN_ADMIN_BENUTZER
 ```
 
-`DEIN_ADMIN_BENUTZER` ersetzen. Das Script benötigt `openssl`, `acl`/`setfacl`, `realpath` und `runuser`. Es fragt den PRTG-Key verdeckt ab, erzeugt zwei unabhängige Tokens für Panel und OTA-Administration und überschreibt bestehende Secrets nicht. Container-UID 1000 und der angegebene Administrator erhalten die erforderlichen Rechte; der Administrator auch über vererbbare ACLs auf neue Dateien. Tokenwerte werden nicht ausgegeben.
+`DEIN_ADMIN_BENUTZER` ersetzen. Das Script benötigt `openssl`, `acl`/`setfacl`, `realpath`, `runuser` und `setpriv`. Es fragt den PRTG-Key verdeckt ab, erzeugt zwei unabhängige Tokens für Panel und OTA-Administration und überschreibt bestehende Secrets nicht. Container-UID 1000 und der angegebene Administrator erhalten die erforderlichen Rechte; der Administrator auch über vererbbare ACLs auf neue Dateien. Tokenwerte werden nicht ausgegeben.
 
 In `.env` sind Datenverzeichnis, Port, Bind-Adresse und Compose-Projektname anpassbar. Wird ein anderes Datenverzeichnis gewählt, dieses auch an das Setup-Script übergeben. Die Vorlage bindet den Backend-Port nur an `127.0.0.1`. Für Dockge am besten einen absoluten `DATA_DIRECTORY` verwenden; Build-Dateien im Stack-Verzeichnis ablegen.
 
 ## 2. Eigene PRTG-Konfiguration eintragen
+
+Empfohlen: nach Start und HTTPS-Einrichtung im WebAdmin `/admin` unter **Systeme / PRTG** konfigurieren. JSON ist der Start-/Dateiweg; nach Web-Speicherung hat `data/admin/settings.json` Vorrang. Nicht parallel beide Stände pflegen.
 
 `data/config/aggregator.json` bearbeiten:
 
@@ -44,7 +48,7 @@ docker compose ps
 docker compose logs --tail=40 aggregator
 ```
 
-Dockge kann dieselbe `compose.yaml` und lokale `.env` verwenden. Fehlende Secret-Dateien werden absichtlich nicht automatisch als Verzeichnisse angelegt. Das Container-Dateisystem ist schreibgeschützt; nur `data/firmware` ist für Uploads beschreibbar.
+Dockge kann dieselbe `compose.yaml` und lokale `.env` verwenden. Fehlende Secret-Dateien werden absichtlich nicht automatisch als Verzeichnisse angelegt. Das Container-Dateisystem ist schreibgeschützt; `data/firmware` für Uploads und `data/admin` für gespeicherte Web-Einstellungen sind beschreibbar.
 
 `/healthz` prüft den Prozess, nicht den Zustand der Infrastruktur. `/api/v1/health` benötigt `Authorization: Bearer <Panel-Token>`. Der PRTG-Key wird nur serverseitig verwendet. Fehler, Abfragedauer und Wiederherstellung werden protokolliert, keine Tokens oder Rohantworten.
 
@@ -69,7 +73,7 @@ Bei einer privaten CA: Node über `NODE_EXTRA_CA_CERTS` und einen schreibgeschü
 - Panel: WLAN, Panel-Token und NTP unter Verbindung eingeben.
 - Unter Panel: beispielsweise `https://monitor.example.org` als Aggregator-Adresse und deinen eigenen Anzeigenamen speichern. Keine API-Pfade oder Credentials in die Adresse schreiben.
 - Unter Firmware: **Aggregator (intern)** wählen.
-- Browser: `https://monitor.example.org/updates` öffnen, separates OTA-Administrator-Token eingeben und eine signierte `.eagleota`-Datei hochladen.
+- Browser: `https://monitor.example.org/admin` öffnen, mit dem eigenen Passwort anmelden (zuerst Token und Passwort unter Zugang einrichten) und unter **Firmware** eine signierte `.eagleota`-Datei hochladen. `/updates` bleibt als technische Upload-Seite verfügbar.
 
 Ein Upload stellt ein Angebot bereit und installiert nichts automatisch. Der lesende Panel-Token darf keine Firmware hochladen. Neue Dateien im Firmware-Ordner müssen für deinen Administrator zugänglich bleiben; Standard-ACLs aus dem Setup-Script dafür beibehalten.
 
@@ -100,6 +104,6 @@ Die Demo hört standardmässig auf Loopback. Sie liefert synthetische Daten und 
 | PRTG 401/403 | API-Key, lesender Benutzer und Rechte auf die gewählten Sensoren |
 | HTTP 200, aber unbekannte Werte | Sensor-ID, Status, Kanalnamen und Zeitstempel/UTC |
 | Panel erreicht API nicht | DNS, HTTPS-Zertifikat, NTP, Proxy, Token und Netzfreigaben |
-| Upload abgelehnt | OTA-Administrator-Token, Signatur, Board, höhere Version und Schreibrechte |
+| Upload abgelehnt | OTA-Administrator-Token, Signatur, Board, Versions-/Hashkonflikte, Archivlimit und Schreibrechte |
 
 Kein produktiver Docker-Start ist durch die lokale Repository-Prüfung bestätigt. Compose auf deinem Zielhost vor dem Start validieren.

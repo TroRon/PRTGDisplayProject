@@ -1,6 +1,10 @@
 # PRTG Display Project
 
-## Aggregator 1.0.0 – WebAdmin
+**[Gesamtes Projekthandbuch](docs/HANDBUCH.md)** · [Bedienung, Updates und Fehlerhilfe](docs/BETRIEB.md) · [Architektur / Entwicklung](docs/ENTWICKLUNG.md) · [Projektstand und offene Punkte](docs/PROJEKTSTATUS.md)
+
+**Versionshinweis:** Aggregator **1.1.0** mit Sortieren/Kopieren, Passwort und GitHub-Import ist zur Veröffentlichung freigegeben. Display **1.0.0 R3** bleibt unverändert. Ein Git-Push aktualisiert fremde Installationen nicht; den Aggregator gezielt neu bauen/starten.
+
+## Aggregator 1.1.0 – WebAdmin
 
 Systemnamen, Kategorien, Sensoren und PRTG-Verbindung im Browser konfigurieren. Signierte Firmware-Pakete hochladen und am Display über den Aggregator auswählen. Eigenständiger Administrator-Zugang und persistente Einstellungen. [Einrichtung und Bedienung](DockerAggregator/WEBADMIN.md). Display-Firmware 1.0.0 R3 unverändert.
 
@@ -70,7 +74,7 @@ Die drei Bereichsanleitungen enthalten die konkreten Befehle, Beispiele und Fehl
 | Aggregator-HTTPS-Adresse und Panel-Anzeigename | Display → Panel oder USB-Assistent, optional `--panel-only` |
 | OTA-Kanal und öffentliche Manifest-Adresse | Display → Firmware oder USB-Assistent, optional `--ota-only` |
 
-Die Hardwarebelegung, API-Version und Kategorien-Schlüssel sind technische Vorgaben. Aktuell unterstützt das Display bis zu **24 Systeme**, Antworten bis **32 KiB** und die oben genannten fünf Kategorien. Die Panel-Abfragepause beträgt 15 Sekunden, der Demo-Fallback 30 Sekunden; diese beiden Werte sind derzeit Build-Einstellungen. Eigene private Zertifizierungsstellen brauchen eine angepasste Vertrauenskonfiguration im Build. «Konfigurierbar» bedeutet nicht, dass beliebige Boards oder unbekannte API-Formate automatisch unterstützt werden.
+Die Hardwarebelegung, API-Version und Kategorien-Schlüssel sind technische Vorgaben. Aktuell unterstützt das Display bis zu **24 Systeme**, Antworten bis **32 KiB** und die oben genannten fünf Kategorien. Die Panel-Abfragepause beträgt 15 Sekunden, der Demo-Fallback 50 Sekunden; diese beiden Werte sind derzeit Build-Einstellungen. Eigene private Zertifizierungsstellen brauchen eine angepasste Vertrauenskonfiguration im Build. «Konfigurierbar» bedeutet nicht, dass beliebige Boards oder unbekannte API-Formate automatisch unterstützt werden.
 
 ## Updates ohne USB
 
@@ -122,3 +126,9 @@ Der Veröffentlichungscheck prüft Release-Hashes, typische Schlüssel-/Tokenmus
 Die Trennung von Entwicklung und Distribution sowie die verpflichtende Benutzerfreigabe sind in [WORKFLOW.md](WORKFLOW.md) beschrieben. Version 0.8.1 wurde vom Betreiber auf dem realen Display erfolgreich bestätigt, einschliesslich OTA und ausgeblendeter inaktiver Rubriken. Eine gezielte Rollback-Abnahme steht weiterhin aus.
 
 Bereits installierte 1.0.0 wird über **Versionen prüfen → 1.0.0 → Neuinstallation** aktualisiert. Danach innerhalb von 120 Sekunden bestätigen. [Korrekturstand und Installationshinweise](CHANGELOG.md).
+
+## Aggregator 1.1.0 mit synthetischen Daten
+
+Browseransicht von Aggregator 1.1.0 mit ausschliesslich synthetischem System und Test-Sensor-ID, keine Live-Daten.
+
+![Synthetische Systemkonfiguration mit Sortieren und Kopieren](DockerAggregator/images/admin-system-copy.png)

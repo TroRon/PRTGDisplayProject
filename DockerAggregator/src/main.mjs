@@ -4,6 +4,8 @@ import { readConfig, readSecret } from './config.mjs';
 import { PrtgClient } from './prtg.mjs';
 import { MonitoringRuntime } from './runtime.mjs';
 import { createAdminStore } from './admin-store.mjs';
+import { createAdminAuth } from './admin-auth.mjs';
+import { createGithubFirmware } from './github-firmware.mjs';
 import { createAdmin } from './admin.mjs';
 import { createApi, parseAllowedClients } from './server.mjs';
 import { createLogger } from './logging.mjs';
@@ -38,7 +40,9 @@ try {
     if(process.env.ADMIN_DIRECTORY){
       const store = await createAdminStore({directory:process.env.ADMIN_DIRECTORY,config,prtgToken,apply:next=>runtime.update(next)});
       runtime.update(store.effective());
-      admin=createAdmin({origin:process.env.ADMIN_ORIGIN,token:adminToken,panelToken,store,runtime,firmware,log});
+      const auth=await createAdminAuth({directory:process.env.ADMIN_DIRECTORY,token:adminToken});
+      const github=createGithubFirmware({url:process.env.OTA_GITHUB_CATALOG});
+      admin=createAdmin({auth,github,origin:process.env.ADMIN_ORIGIN,token:adminToken,panelToken,store,runtime,firmware,log});
     }
     const server = createApi(runtime, panelToken, parseAllowedClients(process.env.ALLOWED_CLIENT_IPS), firmware, admin);
     server.requestTimeout = firmware ? 120000 : 10000;

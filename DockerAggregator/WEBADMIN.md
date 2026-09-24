@@ -1,6 +1,6 @@
 # Aggregator-WebAdmin und Firmware-Verwaltung
 
-Freigegebener Aggregator **1.0.0** mit WebAdmin und signierter Firmware-Bereitstellung. Browser- und HTTP-Tests erfolgreich; eine physische OTA-Abnahme über den Aggregator bleibt erforderlich. Die Display-Firmware **1.0.0 R3** bleibt unverändert.
+**Aktuell: Aggregator 1.1.0.** [Sortieren/Kopieren, Passwort und GitHub-Import mit Bildern](VERSION-1.1.md) · [Betrieb / Backup](../docs/BETRIEB.md) · [Projektstatus](../docs/PROJEKTSTATUS.md). Display-Firmware 1.0.0 R3 bleibt unverändert.
 
 ## Was der WebAdmin bietet
 
@@ -14,9 +14,11 @@ Für «PBS Zürich» und «PBS Bern» zwei Systeme mit verschiedenen internen ID
 
 ## Anmeldung
 
-`https://monitor.example.org/admin` öffnen und das **separate OTA-Administrator-Token** der Installation eingeben. Es ist derselbe Administrator-Zugang wie für den bisherigen Firmware-Upload. Kein PRTG- oder Panel-Token verwenden. Der Administrator-Zugang berechtigt sowohl zur Konfiguration als auch zur Firmware-Verwaltung.
+`https://monitor.example.org/admin` öffnen. Bei der ersten Einrichtung ohne Passwort das **separate OTA-Administrator-Token** eingeben, anschliessend unter **Zugang** ein eigenes Passwort setzen. Danach genügt dieses Passwort; kein Benutzername erforderlich. PRTG-/Panel-Token und Display-Passwort sind andere Zugänge.
 
-Das Token steht nur im Arbeitsspeicher des Browserfensters, nicht in URL, Cookies oder localStorage. Schliessen/Neuladen erfordert erneute Anmeldung. Nach 15 Minuten ohne Bedienung meldet sich die Oberfläche lokal ab und verwirft offene Änderungen. Dies ist keine serverseitige Token-Sperrung: zum Widerrufen das Administrator-Secret auf dem Server ersetzen und den Container neu starten. Mindestens 32 Zeichen, unabhängig vom Panel-Token. Es gibt kein gemeinsames Standardpasswort und keine Verbindung zum WebAdmin-Passwort des Displays.
+Passwort mindestens fünf Zeichen, reine Zahlen erlaubt; Salt/scrypt-Hash in admin/password.json. Änderungen verlangen das aktuelle Passwort. Der Browser erhält ein zufälliges Sitzungstoken ausschliesslich im Arbeitsspeicher. Abmeldung/Neustart widerrufen Sitzungen; Passwortwechsel widerruft alle anderen Sitzungen. Nach 15 Minuten ohne Bedienung lokale Abmeldung; serverseitig 15 Minuten ohne Anfragen und maximal acht Stunden. Schliessen/Neuladen verlangt erneute Anmeldung.
+
+Das ursprüngliche OTA-Administrator-Token bleibt ein technischer Vollzugang für APIs und Uploads. Eine Passwortänderung rotiert es nicht. Mindestens 32 Zeichen, getrennt vom Panel-Token. Nach Passwort-Einrichtung wird es nicht mehr als Browser-Login akzeptiert. Wiederherstellung ohne Passwort und Tokenrotation sind in der Betriebsanleitung beschrieben.
 
 Der Server begrenzt falsche Anmeldeversuche je TCP-Absender auf zehn pro Minute. Hinter einem Proxy teilen sich Administratoren diesen Absender. Der öffentliche HTTPS-Ursprung muss exakt über `ADMIN_ORIGIN` konfiguriert sein, ohne abschliessenden Schrägstrich. HTTP ist nur für lokale Tests auf Loopback zulässig. Host und Origin müssen passen; untrusted Forwarding-Header gewähren keinen Zugriff. Der bestehende TCP-Absenderfilter bleibt bestehen.
 

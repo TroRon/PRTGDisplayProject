@@ -1,5 +1,7 @@
 # PRTG Sensoren
 
+[Von PRTG bis zur Live-Anzeige](../docs/HANDBUCH.md) · [Betrieb / Fehlerhilfe](../docs/BETRIEB.md) · [Projektstand](../docs/PROJEKTSTATUS.md). Namen und Zuordnungen im Aggregator-WebAdmin pflegen; PRTG bleibt für Sensorstatus und Grenzwerte verantwortlich.
+
 Hier beginnt die Datenerfassung. Du kannst vorhandene PRTG-Sensoren verwenden; die Beispiele sind keine Pflicht. Sie sind allgemeine Vorlagen und müssen auf deinem PRTG-/Probe-/Host-Stand getestet werden.
 
 ## Vorhandene Sensoren nutzen

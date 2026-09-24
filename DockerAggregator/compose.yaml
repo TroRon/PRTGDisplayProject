@@ -1,12 +1,13 @@
 services:
   aggregator:
-    image: prtg-display-aggregator:1.0.0
+    image: prtg-display-aggregator:1.1.0
     build: .
     restart: unless-stopped
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     environment:
+      OTA_GITHUB_CATALOG: ${OTA_GITHUB_CATALOG:-https://raw.githubusercontent.com/TroRon/PRTGDisplayProject/main/Display/ota/catalog.json}
       HOST: 0.0.0.0
       PORT: 8787
       CONFIG_FILE: /app/config/local.json
