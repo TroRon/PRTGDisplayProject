@@ -4,7 +4,7 @@ Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, S
 
 ## 1. USB-Paket herunterladen
 
-Verwende [prtg-display-0.7.1.zip](releases/prtg-display-0.7.2.zip) und entpacke es vollständig. Alle folgenden Flash-Befehle laufen im entpackten Ordner. Einzelne Dateien nicht aus verschiedenen Releases mischen.
+Verwende [prtg-display-0.7.1.zip](releases/prtg-display-0.8.0.zip) und entpacke es vollständig. Alle folgenden Flash-Befehle laufen im entpackten Ordner. Einzelne Dateien nicht aus verschiedenen Releases mischen.
 
 Enthalten sind vier getrennte Images, **kein Full-Flash-Abbild**. Das Paket enthält keine WLAN-Zugangsdaten und keine Aggregator-Adresse. Es darf keine Sicherung eines bereits eingerichteten Geräts ersetzen.
 
@@ -38,7 +38,7 @@ python3 -m venv .venv
 
 Falls keine Verbindung entsteht: anderes Datenkabel/USB-Port testen; bei Bedarf BOOT gedrückt halten, RESET kurz drücken, BOOT loslassen und den Port erneut auswählen. Bei Übertragungsfehlern `flash.py --baud 115200` verwenden. Kein `erase_flash` als Routine-Schritt ausführen.
 
-Die genauen Offsets und der manuelle Befehl stehen in [FLASH.md](releases/0.7.2/FLASH.md). Bei einem bestehenden Gerät bleiben NVS-Einstellungen erhalten, sofern es das bisherige Projektlayout verwendet. Die vier Images setzen die OTA-Auswahl zurück und starten die neue Factory-Anwendung. Von Versionen vor 0.6 ist diese USB-Installation für das neue OTA-Partitionslayout erforderlich.
+Die genauen Offsets und der manuelle Befehl stehen in [FLASH.md](releases/0.8.0/FLASH.md). Bei einem bestehenden Gerät bleiben NVS-Einstellungen erhalten, sofern es das bisherige Projektlayout verwendet. Die vier Images setzen die OTA-Auswahl zurück und starten die neue Factory-Anwendung. Von Versionen vor 0.6 ist diese USB-Installation für das neue OTA-Partitionslayout erforderlich.
 
 ## 4. Verbindung und Anzeigename eintragen
 
@@ -119,6 +119,20 @@ Es gibt keinen Schalter zum Abschalten der TLS-Prüfung. Für eigene private Zer
 
 ## 6. OTA-Updates
 
+### Von 0.7.2 auf 0.8.0 und zurück
+
+Auf 0.7.2 wie bisher «Update prüfen» und die angebotene 0.8.0 installieren. Nach dem Neustart innerhalb von 120 Sekunden «Diese Version behalten» bestätigen. Ein USB-Flash ist dafür nicht erforderlich.
+
+Ab 0.8.0: **«Versionen prüfen» → Zielversion auswählen → «Installieren» → ausdrücklich bestätigen.** Angezeigt werden installierte und gewählte Version, Paketgrösse und Fortschritt. Die Liste kennzeichnet Update, Downgrade oder Neuinstallation. Eine vorgemerkte Installation kann vor dem zweiten Klick abgebrochen werden; während des Schreibens nicht ausschalten. Nach jedem OTA-Neustart gilt die Boot-Bestätigung erneut.
+
+![Versionsauswahl und Downgrade-Bestätigung](ota-versions.png)
+
+Die öffentliche Auswahl enthält 0.8.0, 0.7.2, 0.7.1 und 0.7.0. Jedes Angebot wird einzeln kryptografisch geprüft. Fehlende oder ungültige Signaturen sowie falsche Boards/Layouts werden abgelehnt. WLAN, Panel- und OTA-Konfiguration bleiben gespeichert. Ältere Versionen können allerdings neuere Funktionen nicht darstellen. Nach einem Downgrade auf 0.7.x führt dessen «Update prüfen» über das weiterhin vorhandene neueste Angebot zurück auf 0.8.0.
+
+Die vorhandene Manifest-URL bleibt gleich. Ab 0.8.0 wird im selben Verzeichnis zuerst `catalog.json` gelesen; nur bei HTTP 404 erfolgt ein Rückgriff auf das Einzelangebot. Der Katalog ist auf acht Versionen und 16 KiB begrenzt. Die Signaturen der einzelnen Angebote schützen Version und Image-Hash; der Katalog selbst ist keine signierte Vollständigkeitsgarantie. Binärdateien müssen unter ihrem SHA256-Namen im selben Verzeichnis liegen.
+
+Für eigene Veröffentlichungen erzeugt `node tools/build-catalog.mjs` aus den geprüften Release-Paketen die neuesten acht Angebote. Manifest, Katalog und zugehörige BINs gemeinsam veröffentlichen. Der echte OTA-/Rollback-Test für 0.8.0 bleibt bis zur Geräteabnahme offen.
+
 **Aggregator:** Signiertes `.eagleota`-Paket auf `https://DEIN-AGGREGATOR/updates` mit dem separaten OTA-Administrator-Token hochladen. Dieses Token gehört nicht auf das Panel. Am Panel den Kanal Aggregator wählen.
 
 **Öffentlich:** Im Register Firmware den direkten HTTPS-Kanal wählen. Vorbelegt ist:
@@ -127,9 +141,9 @@ Es gibt keinen Schalter zum Abschalten der TLS-Prüfung. Für eigene private Zer
 https://raw.githubusercontent.com/TroRon/PRTGDisplayProject/main/Display/ota/manifest.json
 ```
 
-Dieser Pfad funktioniert erst nach Veröffentlichung der Dateien auf `main`. Keine Anmeldung erforderlich. Die URL muss auf ein signiertes Manifest zeigen, nicht auf eine GitHub-Webseite oder ein USB-ZIP. Bereits gespeicherte OTA-Einstellungen werden bei einem Update nicht überschrieben; vorhandene leere/andere URLs gegebenenfalls anpassen.
+Dieser Pfad liefert das neueste veröffentlichte Angebot. Keine Anmeldung erforderlich. Die URL muss auf ein signiertes Manifest zeigen, nicht auf eine GitHub-Webseite oder ein USB-ZIP. Bereits gespeicherte OTA-Einstellungen werden bei einem Update nicht überschrieben; vorhandene leere/andere URLs gegebenenfalls anpassen.
 
-«Update prüfen» antippen, Angebot kontrollieren und «Installieren» bestätigen. Während des Downloads pausiert die Live-Abfrage. Nach dem Neustart Display und Touch prüfen und die neue Version **innerhalb von 120 Sekunden bestätigen**. Ohne Bestätigung ist ein automatischer Rückfall vorgesehen; die reale Abnahme dieses Mechanismus steht noch aus. Gleiche oder ältere Sequenzen werden nicht als neues OTA-Angebot akzeptiert.
+«Update prüfen» antippen, Angebot kontrollieren und «Installieren» bestätigen. Während des Downloads pausiert die Live-Abfrage. Nach dem Neustart Display und Touch prüfen und die neue Version **innerhalb von 120 Sekunden bestätigen**. Ohne Bestätigung ist ein automatischer Rückfall vorgesehen; die reale Abnahme dieses Mechanismus steht noch aus. Ab 0.8.0 können gleiche Versionen neu installiert und ältere signierte Versionen gezielt ausgewählt werden. Ältere Firmware bietet weiterhin ausschliesslich neuere Versionen an.
 
 Geprüft werden Signatur, Board, Layout, Version, Grösse und SHA256. Öffentliche Prüfschlüssel sind enthalten; private Signierschlüssel werden nicht verteilt. Das ist kein eFuse-Secure-Boot und kein Schutz gegen absichtliches Neuflashen per USB.
 
@@ -146,4 +160,4 @@ idf.py build
 
 Die ausgelieferten Images wurden nativ mit ESP-IDF 5.5.0 gebaut. Für öffentliche eigene Builds Compiler-Pfadpräfixe neutralisieren (CMake-Option `PUBLIC_SOURCE_ROOT`) und Dateien vor Veröffentlichung prüfen. Eigene OTA-Forks benötigen einen eigenen privaten Signierschlüssel ausserhalb des Repos und denselben öffentlichen Schlüssel in Firmware und Aggregator; zuerst per USB installieren. Der mitgelieferte öffentliche Schlüssel autorisiert keine selbst signierten Pakete.
 
-Weitere technische Angaben: [BUILD-INFO.json](releases/0.7.2/BUILD-INFO.json), [Lizenzen](LICENSES/).
+Weitere technische Angaben: [BUILD-INFO.json](releases/0.8.0/BUILD-INFO.json), [Lizenzen](LICENSES/).

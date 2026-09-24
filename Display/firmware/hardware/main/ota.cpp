@@ -1,5 +1,5 @@
 #include "preferences.h"
-#include "ota_policy.h"
+#include "ota_catalog.h"
 #include "Arduino.h"
 #include <ArduinoJson.h>
 #include <atomic>
@@ -29,7 +29,8 @@ static Config selected;
 static Status state;
 static unsigned command=0;
 static uint32_t pendingAt=0;
-struct Offer {unsigned sequence=0,size=0;char hash[65]={};char version[32]={};};
+static Offer releases[MaxReleases];
+static char checkedManifest[384]={};
 static Offer offer;
 struct PsramAllocator {
  void* allocate(size_t n){return heap_caps_malloc(n,MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);}
@@ -66,13 +67,21 @@ bool check(const Config& c){
  if(!initialized||!validConfig(c))return false;
  lock();
  bool ok=state.ready&&!state.busy&&!state.pending;
- if(ok){selected=c;state.available=false;state.offered[0]=0;state.busy=true;state.progress=0;command=1;}
+ if(ok){selected=c;state.available=false;state.offered[0]=0;state.count=0;++state.revision;state.busy=true;state.progress=0;command=1;}
+ unlock();return ok;
+}
+bool choose(unsigned index){
+ if(!initialized)return false;
+ lock();bool ok=!state.busy&&!state.pending&&index<state.count;
+ if(ok){state.chosen=index;offer=releases[index];state.targetSequence=offer.sequence;state.targetSize=offer.size;
+  snprintf(state.offered,sizeof(state.offered),"%s",offer.version);state.available=true;}
  unlock();return ok;
 }
 bool install(const Config& c){
  if(!initialized)return false;
+ char manifest[384];if(!manifestUrl(c,manifest,sizeof(manifest)))return false;
  lock();
- bool ok=state.ready&&!state.busy&&!state.pending&&state.available&&validConfig(c)&&c.direct==selected.direct&&(!c.direct||!strcmp(c.url,selected.url));
+ bool ok=!strcmp(manifest,checkedManifest)&&state.ready&&!state.busy&&!state.pending&&state.available&&validConfig(c)&&c.direct==selected.direct&&(!c.direct||!strcmp(c.url,selected.url));
  if(ok){state.busy=true;state.available=false;state.progress=0;command=2;}
  unlock();return ok;
 }
@@ -82,16 +91,28 @@ void confirm(){
  if(ok){command=3;state.busy=true;}
  unlock();
 }
-static esp_http_client_handle_t open(const char* url,const live::Config& credentials,bool authenticated){
+static esp_http_client_handle_t open(const char* url,const live::Config& credentials,bool authenticated,int* http=nullptr){
  esp_http_client_config_t c={};c.url=url;c.crt_bundle_attach=esp_crt_bundle_attach;
- c.timeout_ms=8000;c.disable_auto_redirect=true;c.buffer_size=2048;c.buffer_size_tx=1024;
+ c.timeout_ms=10000;c.disable_auto_redirect=true;c.buffer_size=2048;c.buffer_size_tx=1024;
  auto client=esp_http_client_init(&c);
- if(!client)return nullptr;
- esp_err_t err=ESP_OK;
+ if(!client){message("OTA: HTTPS-Speicher nicht verfügbar");return nullptr;}
+ esp_err_t err=ESP_OK;const char* stage="header";
  if(authenticated){char header[sizeof(credentials.token)+8];snprintf(header,sizeof(header),"Bearer %s",credentials.token);
   err=esp_http_client_set_header(client,"Authorization",header);memset(header,0,sizeof(header));}
- if(err==ESP_OK)err=esp_http_client_open(client,0);
- if(err!=ESP_OK||esp_http_client_fetch_headers(client)<0||esp_http_client_get_status_code(client)!=200){esp_http_client_cleanup(client);return nullptr;}
+ if(err==ESP_OK){stage="connect";err=esp_http_client_open(client,0);}
+ int status=0;int64_t length=-1;
+ if(err==ESP_OK){stage="response";length=esp_http_client_fetch_headers(client);status=esp_http_client_get_status_code(client);}
+ if(http)*http=status;
+ if(err!=ESP_OK||length<0||status!=200){
+  if(err==ESP_OK&&length<0)err=ESP_FAIL;
+  int tls=0,flags=0;esp_http_client_get_and_clear_last_tls_error(client,&tls,&flags);
+  ESP_LOGW("EAGLENET_OTA","request stage=%s err=%s HTTP=%d tls=%d flags=%d",stage,esp_err_to_name(err),status,tls,flags);
+  char detail[160];
+  if(status)snprintf(detail,sizeof(detail),"OTA HTTP %d: %s",status,status==404?"Datei fehlt; Kanal/Manifest-URL prüfen":status==401||status==403?"Zugriff abgelehnt":status>=300&&status<400?"Direkte Datei-URL ohne Weiterleitung verwenden":"Serverantwort nicht erfolgreich");
+  else if(tls||flags)snprintf(detail,sizeof(detail),"OTA TLS fehlgeschlagen: Zeit, Zertifikat und Internetzugang prüfen");
+  else snprintf(detail,sizeof(detail),"OTA Verbindung fehlgeschlagen (%s): DNS, Internetzugang oder Timeout",esp_err_to_name(err));
+  message(detail);esp_http_client_cleanup(client);return nullptr;
+ }
  return client;
 }
 static bool signedOffer(const char* envelope,size_t size,Offer& result){
@@ -109,15 +130,7 @@ static bool signedOffer(const char* envelope,size_t size,Offer& result){
  mbedtls_pk_free(&key);if(err)return false;
  BasicJsonDocument<PsramAllocator> doc(4096);
  if(deserializeJson(doc,bytes,count))return false;
- if((doc["schema"]|0)!=1||strcmp(doc["board"]|"",Board)||strcmp(doc["layout"]|"",Layout)||
-    !doc["sequence"].is<unsigned>()||!doc["size"].is<unsigned>())return false;
- const char* version=doc["version"]|"",*digest=doc["sha256"]|"";
- if(!hashText(digest)||!strlen(version)||strlen(version)>=sizeof(result.version))return false;
- for(const char* p=version;*p;++p)if(!((*p>='0'&&*p<='9')||*p=='.'))return false;
- result.size=doc["size"];result.sequence=doc["sequence"];
- if(result.size<1024||result.size>0x400000||!versionSequence(version)||result.sequence!=versionSequence(version))return false;
- snprintf(result.hash,sizeof(result.hash),"%s",digest);snprintf(result.version,sizeof(result.version),"%s",version);
- return true;
+ return offerMetadata(doc.as<JsonVariantConst>(),result);
 }
 static bool saveConfig(const Config& c){
  nvs_handle_t n;if(nvs_open("eagle-ota",NVS_READWRITE,&n)!=ESP_OK)return false;
@@ -127,28 +140,48 @@ bool configure(const Config& c){
  if(!initialized||!validConfig(c))return false;
  lock();
  bool ok=!state.busy&&!state.pending&&saveConfig(c);
- if(ok){selected=c;state.available=false;state.offered[0]=0;state.progress=0;
+ if(ok){selected=c;state.available=false;state.offered[0]=0;state.count=0;++state.revision;state.progress=0;
   snprintf(state.message,sizeof(state.message),"Update-Kanal gespeichert; Update prüfen bei Bedarf");}
  unlock();return ok;
 }
 static void fetchOffer(const Config& c,const live::Config& credentials){
  if(!saveConfig(c)){message("Update-Kanal konnte nicht gespeichert werden");return;}
- message("Update-Angebot wird geprüft");
- char manifest[384];if(!manifestUrl(c,manifest,sizeof(manifest))){message("Zuerst Aggregator-Adresse im Register Panel eintragen");return;}
- auto client=open(manifest,credentials,!c.direct);
- if(!client){message("Download fehlgeschlagen: HTTPS/HTTP, URL oder Zugriff prüfen");return;}
- char* data=(char*)heap_caps_malloc(8193,MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);
+ message("Verfügbare Versionen werden geprüft");
+ char manifest[384],catalog[384];
+ if(!manifestUrl(c,manifest,sizeof(manifest))||!catalogUrl(manifest,catalog,sizeof(catalog))){message("Kanal-Adresse prüfen; Aggregator unter Panel eintragen");return;}
+ int http=0;bool legacy=false;
+ auto client=open(catalog,credentials,!c.direct,&http);
+ if(!client&&http==404){legacy=true;client=open(manifest,credentials,!c.direct);}
+ if(!client)return;
+ constexpr size_t Limit=16384;
+ char* data=(char*)heap_caps_malloc(Limit+1,MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);
  size_t used=0;const uint32_t start=millis();
- if(data)while(used<8192&&uint32_t(millis()-start)<30000&&!esp_http_client_is_complete_data_received(client)){
-  int n=esp_http_client_read(client,data+used,8192-used);if(n<=0)break;used+=n;
+ if(data)while(used<Limit&&uint32_t(millis()-start)<30000&&!esp_http_client_is_complete_data_received(client)){
+  int n=esp_http_client_read(client,data+used,Limit-used);if(n<=0)break;used+=n;
  }
  bool complete=data&&esp_http_client_is_complete_data_received(client);
  esp_http_client_cleanup(client);
- Offer candidate;
- bool ok=complete&&signedOffer(data,used,candidate);heap_caps_free(data);
- if(!ok){message("Update abgelehnt: Signatur, Board oder Metadaten ungültig");return;}
- lock();offer=candidate;snprintf(state.offered,sizeof(state.offered),"%s",offer.version);state.available=offer.sequence>Sequence;unlock();
- message(candidate.sequence>Sequence?"Geprüftes Update verfügbar; Installation bestätigen":"Kein neueres Update verfügbar");
+ Offer candidates[MaxReleases];unsigned count=0;bool ok=complete;
+ if(ok&&legacy){Offer one;ok=signedOffer(data,used,one)&&addOffer(candidates,count,one);}
+ else if(ok){
+  BasicJsonDocument<PsramAllocator> doc(32768);
+  ok=!deserializeJson(doc,data,used)&&(doc["schema"]|0)==1&&doc["releases"].is<JsonArray>()&&doc["releases"].size()>0&&doc["releases"].size()<=MaxReleases;
+  if(ok)for(JsonVariant entry:doc["releases"].as<JsonArray>()){
+   char envelope[4096];Offer one;
+   size_t size=measureJson(entry);
+   if(size>=sizeof(envelope)){ok=false;break;}
+   serializeJson(entry,envelope,sizeof(envelope));
+   if(!signedOffer(envelope,size,one)||!addOffer(candidates,count,one)){ok=false;break;}
+  }
+ }
+ heap_caps_free(data);
+ if(!ok||!count){message(complete?"Versionsliste abgelehnt: Signatur/Board/Version prüfen":"Versionsliste unvollständig oder zu gross; erneut prüfen");return;}
+ lock();
+ memcpy(releases,candidates,count*sizeof(Offer));snprintf(checkedManifest,sizeof(checkedManifest),"%s",manifest);
+ state.count=count;state.chosen=0;++state.revision;offer=releases[0];
+ for(unsigned i=0;i<count;++i)snprintf(state.versions[i],sizeof(state.versions[i]),"%s",releases[i].version);
+ snprintf(state.offered,sizeof(state.offered),"%s",offer.version);state.available=true;state.targetSequence=offer.sequence;state.targetSize=offer.size;
+ unlock();message(legacy?"Einzelangebot geladen; Server bietet noch keine Versionsliste":"Signierte Versionen geladen; Zielversion auswählen");
 }
 static void download(const Config& c,const live::Config& credentials){
  char url[512];
@@ -158,7 +191,7 @@ static void download(const Config& c,const live::Config& credentials){
  if(!partition||partition==esp_ota_get_running_partition()||offer.size>partition->size){message("OTA-Partition fehlt; USB-Migration erforderlich");return;}
  message("Firmware wird geladen; Monitoring pausiert vorübergehend");
  auto client=open(url,credentials,!c.direct);
- if(!client){message("Firmware-Download fehlgeschlagen; bisherige Version bleibt");return;}
+ if(!client)return;
  auto* buffer=(unsigned char*)heap_caps_malloc(4096,MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);
  esp_ota_handle_t handle=0;bool started=false,ended=false;
  mbedtls_sha256_context sha;mbedtls_sha256_init(&sha);

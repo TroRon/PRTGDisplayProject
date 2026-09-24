@@ -1,6 +1,6 @@
 services:
   aggregator:
-    image: prtg-display-aggregator:0.7.0
+    image: prtg-display-aggregator:0.8.0
     build: .
     restart: unless-stopped
     read_only: true

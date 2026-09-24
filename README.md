@@ -81,7 +81,7 @@ Die Manifest-Adresse dieses Repos lautet:
 https://raw.githubusercontent.com/TroRon/PRTGDisplayProject/main/Display/ota/manifest.json
 ```
 
-Das Manifest auf `main` verweist auf Version 0.7.2. Ein Gerät mit dieser Version bietet dieselbe Version nicht nochmals zur Installation an. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
+Das Manifest auf `main` verweist auf Version 0.8.0. Ab 0.8.0 zeigt «Versionen prüfen» einen Katalog mit Update, Downgrade und Neuinstallation. Ältere Firmware erhält weiterhin das neueste Angebot. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
 
 ## Datenschutz und Zugangsdaten
 
@@ -91,7 +91,9 @@ Das Display spricht bei Live-Daten mit **deinem Aggregator**; PRTG-Zugangsdaten 
 
 ## Projektstand und Mitwirkung
 
-**Aktuell 0.7.2:** Die vollständige USB-Einrichtung erfasst jetzt auch Aggregator-Adresse und Displayname. «Nur Panel» ergänzt diese Angaben, ohne WLAN/Token oder OTA erneut einzugeben. [Aktuelles USB-Paket](Display/releases/prtg-display-0.7.2.zip).
+**Aktuell 0.8.0:** Versionsauswahl für Update, Downgrade und Neuinstallation, mit ausdrücklicher Bestätigung und genaueren Download-Fehlern. [Änderungen und Upgrade-Anleitung](CHANGELOG.md) · [USB-Paket](Display/releases/prtg-display-0.8.0.zip).
+
+Die vollständige USB-Einrichtung erfasst auch Aggregator-Adresse und Displayname. «Nur Panel» ergänzt diese Angaben, ohne WLAN/Token oder OTA erneut einzugeben.
 
 Der Betreiber hat Version 0.7.2 am realen LCD-5B mit funktionierender Live-Anzeige bestätigt. Ein vollständiger OTA-Installations- und Rollback-Test steht weiterhin aus.
 

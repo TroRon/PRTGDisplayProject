@@ -1,5 +1,6 @@
 #include "preferences.h"
 #include "ota.h"
+#include "ota_catalog.h"
 #include "settings.h"
 #include "live.h"
 #include "system_info.h"
@@ -11,6 +12,9 @@ static lv_obj_t *parent,*pages[5],*tabs[5],*hardwareInfo,*runtimeInfo;
 static unsigned activeTab=0;
 static lv_obj_t *otaSource,*otaUrl,*otaStatus,*otaCheck,*otaInstall,*otaKeep,*otaKeyboard;
 static bool installArmed=false;
+static lv_obj_t *otaVersions,*otaCancel;
+static unsigned catalogRevision=~0u;
+static void disarm(lv_event_t*){installArmed=false;lv_label_set_text(lv_obj_get_child(otaInstall,0),"Installieren");}
 static lv_obj_t *panelOrigin,*panelName,*panelNotice,*panelKeyboard;
 static lv_obj_t *screen=nullptr,*keyboard,*ssid,*password,*token,*ntp,*statusLabel,*notice,*saveButton,*title;
 static lv_obj_t* text(const char* caption,int x,int y,int width) {
@@ -50,7 +54,7 @@ static void updateCheck(lv_event_t*){
     if(!ota::check(updateConfig()))lv_label_set_text(otaStatus,"Update-Prüfung nicht gestartet: HTTPS-Adresse/Status prüfen.");
 }
 static void updateInstall(lv_event_t*){
-    if(!installArmed){installArmed=true;lv_label_set_text(lv_obj_get_child(otaInstall,0),"Neustart bestätigen");return;}
+    if(!installArmed){ota::Status s;ota::status(s);installArmed=true;lv_label_set_text(lv_obj_get_child(otaInstall,0),s.targetSequence<ota::Sequence?"Downgrade bestätigen":"Neustart bestätigen");return;}
     installArmed=false;lv_label_set_text(lv_obj_get_child(otaInstall,0),"Installieren");
     if(!ota::install(updateConfig()))lv_label_set_text(otaStatus,"Kanal geändert oder Update nicht bereit. Erneut prüfen.");
 }
@@ -112,7 +116,7 @@ void settingsOpen() {
     notice=text("Speichern verbindet neu. Schliessen verwirft ungespeicherte Eingaben; Registerwechsel erhält sie.",24,224,976);
     lv_obj_set_height(notice,20);lv_label_set_long_mode(notice,LV_LABEL_LONG_WRAP);
     saveButton=button("Speichern & verbinden",24,246,300,save);
-    text("0.7.2 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
+    text("0.8.0 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
     keyboard=lv_keyboard_create(parent);lv_obj_set_align(keyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(keyboard,0,290);lv_obj_set_size(keyboard,1024,200);
     lv_obj_set_style_text_font(keyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);
     lv_keyboard_set_textarea(keyboard,ssid);
@@ -131,13 +135,21 @@ void settingsOpen() {
     ota::Config update;ota::config(update);
     otaSource=lv_dropdown_create(parent);lv_obj_set_pos(otaSource,24,38);lv_obj_set_size(otaSource,400,36);
     lv_dropdown_set_symbol(otaSource,"v");lv_dropdown_set_options(otaSource,"Aggregator (intern)\nDirekter HTTPS-Download");lv_dropdown_set_selected(otaSource,update.direct?1:0);
+    otaVersions=lv_dropdown_create(parent);lv_obj_set_pos(otaVersions,440,38);lv_obj_set_size(otaVersions,560,36);
+    lv_dropdown_set_symbol(otaVersions,"v");lv_dropdown_set_options(otaVersions,"Zuerst Versionen prüfen");
+    catalogRevision=~0u;
+    lv_obj_add_event_cb(otaVersions,[](lv_event_t*){disarm(nullptr);ota::choose(lv_dropdown_get_selected(otaVersions));},LV_EVENT_VALUE_CHANGED,nullptr);
+    lv_obj_add_event_cb(otaSource,disarm,LV_EVENT_VALUE_CHANGED,nullptr);
     otaUrl=field("Direktkanal: HTTPS-Adresse der manifest.json (beim Aggregator nicht benötigt)",update.url,24,84,976,383);
+    lv_obj_add_event_cb(otaUrl,disarm,LV_EVENT_VALUE_CHANGED,nullptr);
     otaStatus=text("",24,158,976);lv_obj_set_height(otaStatus,62);
-    otaCheck=button("Update prüfen",24,234,220,updateCheck);
+    otaCheck=button("Versionen prüfen",24,234,220,updateCheck);
     otaInstall=button("Installieren",258,234,250,updateInstall);
     otaKeep=button("Diese Version behalten",522,234,290,[](lv_event_t*){ota::confirm();});
+    otaCancel=button("Abbrechen",826,234,174,disarm);
     otaKeyboard=lv_keyboard_create(parent);lv_obj_set_align(otaKeyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(otaKeyboard,0,290);lv_obj_set_size(otaKeyboard,1024,200);
     lv_obj_set_style_text_font(otaKeyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);lv_keyboard_set_textarea(otaKeyboard,otaUrl);
+    lv_obj_add_flag(otaKeyboard,LV_OBJ_FLAG_HIDDEN);
     parent=pages[4];lv_obj_clear_flag(parent,LV_OBJ_FLAG_SCROLLABLE);
     preferences::Config identity;preferences::get(identity);
     panelOrigin=field("Aggregator-Adresse: https://hostname oder https://hostname:port (ohne Pfad)",identity.origin,24,0,976,255);
@@ -168,13 +180,21 @@ void settingsTick() {
     }
     if(activeTab==3){
         ota::Status update;ota::status(update);
+        if(catalogRevision!=update.revision){
+            catalogRevision=update.revision;char options[768]={};
+            for(unsigned i=0;i<update.count;++i){size_t used=strlen(options);snprintf(options+used,sizeof(options)-used,"%s%s · %s",i?"\n":"",update.versions[i],ota::actionText(ota::versionSequence(update.versions[i])));}
+            lv_dropdown_set_options(otaVersions,*options?options:"Zuerst Versionen prüfen");lv_dropdown_set_selected(otaVersions,update.chosen);
+        }
         char confirmation[128];
         if(update.pending)snprintf(confirmation,sizeof(confirmation),"Bestätigung erforderlich: %u s bis Rückfall",update.seconds);
-        else snprintf(confirmation,sizeof(confirmation),"Nach dem Update: neue Version innert 120 s bestätigen");
-        lv_label_set_text_fmt(otaStatus,"Installiert: %s · Angebot: %s · Fortschritt: %u %%\n%s\n%s",ota::Version,*update.offered?update.offered:"noch nicht geprüft",update.progress,update.message,confirmation);
+        else if(update.available&&update.targetSequence<ota::Sequence)snprintf(confirmation,sizeof(confirmation),"Downgrade: ältere Funktionen! Nach Neustart innert 120 s bestätigen.");
+        else snprintf(confirmation,sizeof(confirmation),"Nach Installation: Anzeige prüfen und innert 120 s bestätigen");
+        lv_label_set_text_fmt(otaStatus,"Installiert: %s · Ziel: %s · %u KiB · Fortschritt: %u %%\n%s\n%s",ota::Version,*update.offered?update.offered:"noch nicht geprüft",update.targetSize/1024,update.progress,update.message,confirmation);
         auto enabled=[](lv_obj_t* obj,bool yes){if(yes)lv_obj_clear_state(obj,LV_STATE_DISABLED);else lv_obj_add_state(obj,LV_STATE_DISABLED);};
         enabled(otaCheck,update.ready&&!update.busy&&!update.pending);
         enabled(otaInstall,update.ready&&!update.busy&&!update.pending&&update.available);
+        enabled(otaVersions,!update.busy&&!update.pending&&update.count>0);
+        if(installArmed&&!update.busy&&!update.pending)lv_obj_clear_flag(otaCancel,LV_OBJ_FLAG_HIDDEN);else lv_obj_add_flag(otaCancel,LV_OBJ_FLAG_HIDDEN);
         enabled(otaSource,!update.busy&&!update.pending);enabled(otaUrl,!update.busy&&!update.pending&&lv_dropdown_get_selected(otaSource)==1);
         if(update.pending)lv_obj_clear_flag(otaKeep,LV_OBJ_FLAG_HIDDEN);else lv_obj_add_flag(otaKeep,LV_OBJ_FLAG_HIDDEN);
         enabled(otaKeep,update.ready&&!update.busy);

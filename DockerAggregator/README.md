@@ -67,6 +67,14 @@ Bei einer privaten CA: Node über `NODE_EXTRA_CA_CERTS` und einen schreibgeschü
 
 Ein Upload stellt ein Angebot bereit und installiert nichts automatisch. Der lesende Panel-Token darf keine Firmware hochladen. Neue Dateien im Firmware-Ordner müssen für deinen Administrator zugänglich bleiben; Standard-ACLs aus dem Setup-Script dafür beibehalten.
 
+### Versionsliste ab 0.8.0
+
+Bis zu acht signierte `.eagleota`-Pakete können bereitstehen, auch ältere Versionen. `/api/v1/firmware/catalog.json` liefert deren signierte Metadaten mit Panel-Token; `manifest.json` bleibt das neueste Angebot für alte Firmware. Ein älterer Upload ersetzt das neueste Angebot nicht. Identische Wiederholungen sind erlaubt, verschiedene Inhalte unter derselben Versionsnummer werden abgelehnt.
+
+Pakete liegen in `data/firmware/releases/<sha256>.eagleota`. Ein bestehendes `current.eagleota` wird bei der nächsten neuen Bereitstellung mit ins Archiv übernommen. Ein voller Katalog lehnt weitere Versionen ab. Zum Auslagern einer alten Version den Stack kontrolliert stoppen, das entsprechende ältere Paket aus `releases` in eine eigene Sicherung verschieben und wieder starten. `current.eagleota` und dessen neueste Version beibehalten. Bei ACL-fähigen Dateisystemen die Administratorrechte erhalten. Keine pauschale Löschung des Firmware-Verzeichnisses durchführen.
+
+Für einen bisherigen Aggregator ist ein bewusster Neubau/Neustart mit dieser Version erforderlich. Die Veröffentlichung im Repo führt kein Deployment aus. Bis dahin sieht das neue Display nur dessen Einzelangebot; der öffentliche Direktkanal bietet unabhängig davon die vollständige Liste.
+
 ## Lokal ohne Infrastruktur testen
 
 Node.js ab Version 20 genügt; keine npm-Abhängigkeiten:

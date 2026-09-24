@@ -1,5 +1,5 @@
 import { createHash, verify, timingSafeEqual } from 'node:crypto';
-import { readFile, writeFile, rename, mkdir, unlink } from 'node:fs/promises';
+import { readFile, writeFile, rename, mkdir, unlink, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
@@ -31,6 +31,23 @@ export function validatePackage(data, key = publicKey) {
 export function createFirmwareService({ directory, adminToken, panelToken, key = publicKey, log = () => {} }) {
   if (!directory || !adminToken || adminToken.length < 32 || !panelToken || adminToken === panelToken) throw Error('OTA_CONFIG');
   let uploading = false;
+  const archive=join(directory,'releases');
+  async function releases(){
+    const list=[];
+    const add=data=>{
+      const parsed=validatePackage(data,key),old=list.find(p=>p.manifest.sequence===parsed.manifest.sequence);
+      if(old&&old.manifest.sha256!==parsed.manifest.sha256)throw Error('VERSION_CONFLICT');
+      if(!old)list.push(parsed);
+    };
+    try{add(await readFile(join(directory,'current.eagleota')));}catch(e){if(e.code!=='ENOENT')throw e;}
+    let files=[];try{files=await readdir(archive);}catch(e){if(e.code!=='ENOENT')throw e;}
+    files=files.filter(n=>/^[a-f0-9]{64}\.eagleota$/.test(n));
+    if(files.length>8)throw Error('CATALOG_FULL');
+    for(const file of files){const data=await readFile(join(archive,file));const p=validatePackage(data,key);if(file!==p.manifest.sha256+'.eagleota')throw Error('ARCHIVE_HASH');add(data);}
+    if(list.length>8)throw Error('CATALOG_FULL');
+    return list.sort((a,b)=>b.manifest.sequence-a.manifest.sequence);
+  }
+  function packageBytes(p){const h=Buffer.alloc(4);h.writeUInt32BE(p.envelope.length);return Buffer.concat([h,p.envelope,p.image]);}
   const send = (res, status, value) => {res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });res.end(JSON.stringify(value));};
   return async (req, res) => {
     if (req.url === '/updates' && req.method === 'GET') {
@@ -51,12 +68,26 @@ export function createFirmwareService({ directory, adminToken, panelToken, key =
         for await (const chunk of req) {size+=chunk.length;if(size>MAX){send(res,413,{error:'TOO_LARGE'});req.resume();return;}chunks.push(chunk);}
         const packageData=Buffer.concat(chunks), parsed=validatePackage(packageData,key);
         await mkdir(directory,{recursive:true});
-        // Refuse rollback/replacement of an already published sequence.
-        let previous;
-        try {previous=validatePackage(await readFile(join(directory,'current.eagleota')),key).manifest;} catch(e) {if(e.code!=='ENOENT')throw e;}
-        if(previous && parsed.manifest.sequence<=previous.sequence) return send(res,409,{error:'NOT_NEWER'});
+        const known=await releases(),same=known.find(p=>p.manifest.sequence===parsed.manifest.sequence);
+        if(same){
+          if(same.manifest.sha256!==parsed.manifest.sha256)return send(res,409,{error:'VERSION_CONFLICT'});
+          return send(res,200,{version:parsed.manifest.version,sequence:parsed.manifest.sequence,existing:true});
+        }
+        if(known.length>=8)return send(res,409,{error:'CATALOG_FULL'});
+        if(Buffer.byteLength(JSON.stringify({schema:1,releases:[...known,parsed].map(p=>JSON.parse(p.envelope))}))>16384)return send(res,409,{error:'CATALOG_FULL'});
+        await mkdir(archive,{recursive:true});
+        // Preserve the previous single-release store when upgrading an old server.
+        for(const p of known){
+          try{await writeFile(join(archive,p.manifest.sha256+'.eagleota'),packageBytes(p),{flag:'wx',mode:0o660});}
+          catch(e){if(e.code!=='EEXIST')throw e;}
+        }
         await writeFile(temporary,packageData,{flag:'wx',mode:0o660});
-        await rename(temporary,join(directory,'current.eagleota'));
+        await rename(temporary,join(archive,parsed.manifest.sha256+'.eagleota'));
+        // Legacy clients keep seeing the newest release, even after an older upload.
+        if(!known.length||parsed.manifest.sequence>known[0].manifest.sequence){
+          await writeFile(temporary,packageData,{flag:'wx',mode:0o660});
+          await rename(temporary,join(directory,'current.eagleota'));
+        }
         log('INFO',`OTA: Firmware ${parsed.manifest.version} geprüft und bereitgestellt; keine Installation ausgelöst.`);
         return send(res,200,{version:parsed.manifest.version,sequence:parsed.manifest.sequence});
       } catch {log('WARN','OTA: Upload abgelehnt oder Speicherung fehlgeschlagen.');return send(res,400,{error:'PACKAGE_REJECTED'});}
@@ -65,11 +96,12 @@ export function createFirmwareService({ directory, adminToken, panelToken, key =
     if(req.method !== 'GET')return send(res,405,{error:'METHOD_NOT_ALLOWED'});
     if(!tokenOk(req.headers.authorization,panelToken))return send(res,401,{error:'UNAUTHORIZED'});
     const binary=/^\/api\/v1\/firmware\/([a-f0-9]{64})\.bin$/.exec(req.url);
-    if(req.url!=='/api/v1/firmware/manifest.json'&&!binary)return send(res,404,{error:'NOT_FOUND'});
+    if(req.url!=='/api/v1/firmware/manifest.json'&&req.url!=='/api/v1/firmware/catalog.json'&&!binary)return send(res,404,{error:'NOT_FOUND'});
     try {
-      const p=validatePackage(await readFile(join(directory,'current.eagleota')),key);
-      if(binary&&binary[1]!==p.manifest.sha256)return send(res,404,{error:'RELEASE_CHANGED_CHECK_AGAIN'});
-      const data=binary?p.image:p.envelope;
+      const list=await releases();if(!list.length)return send(res,404,{error:'NO_VALID_FIRMWARE'});
+      const p=binary?list.find(p=>p.manifest.sha256===binary[1]):list[0];
+      if(!p)return send(res,404,{error:'RELEASE_NOT_FOUND'});
+      const data=binary?p.image:req.url.endsWith('/catalog.json')?Buffer.from(JSON.stringify({schema:1,releases:list.map(p=>JSON.parse(p.envelope))})):p.envelope;
       res.writeHead(200,{'Content-Type':binary?'application/octet-stream':'application/json','Content-Length':data.length,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(data);
     }catch {send(res,404,{error:'NO_VALID_FIRMWARE'});}
   };
