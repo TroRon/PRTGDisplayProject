@@ -1,5 +1,9 @@
 # Aggregator-WebAdmin und Firmware-Verwaltung
 
+## Korrektur 1.2.1
+
+Systemkarten der Übersicht sind rubrikübergreifend gleich hoch. Die Höhe richtet sich nach dem längsten Inhalt und passt sich bei neuen Daten sowie Bildschirmgrössenänderungen an. Desktop, Mobilansicht, lange Texte und Registerwechsel lokal geprüft. Keine neue Display-Firmware erforderlich.
+
 ## Aggregator 1.2.0 und Display 1.0.1
 
 Systemverwaltung und Übersicht sind nach Infra, Backup, Docker, Netzwerk und Dienste gruppiert. Die Verwaltung zeigt aufklappbare Rubriken mit Anzahl aktiver Systeme. «System hinzufügen» übernimmt die Rubrik; «Nach oben/unten» verschiebt innerhalb dieser Rubrik. Deaktivierte Systeme bleiben ausgegraut und ausdrücklich markiert, damit sie wieder aktiviert werden können.

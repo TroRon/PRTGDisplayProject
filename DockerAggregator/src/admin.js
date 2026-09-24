@@ -65,6 +65,20 @@ function renderConfig(view){
 }
 for(const [id,key] of [['prtgUrl','prtg_url'],['poll','poll_seconds'],['stale','stale_seconds'],['timeout','request_timeout_seconds']])$(id).addEventListener('input',()=>{config[key]=id==='prtgUrl'?$(id).value:Number($(id).value);mark();});
 $('prtgToken').addEventListener('input',mark);
+// Match system-card heights across categories, using the tallest actual content.
+let cardHeightFrame=0,overviewWidth=-1;
+function sizeSystemCards(){
+ cancelAnimationFrame(cardHeightFrame);
+ cardHeightFrame=requestAnimationFrame(()=>{
+  const container=$('systemsStatus');if(!container.getClientRects().length)return;
+  const cards=[...container.querySelectorAll('.status-card')];
+  for(const card of cards)card.style.minHeight='';
+  const height=Math.ceil(Math.max(0,...cards.map(card=>card.getBoundingClientRect().height)));
+  for(const card of cards)card.style.minHeight=height+'px';
+ });
+}
+new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(width!==overviewWidth){overviewWidth=width;sizeSystemCards();}}).observe($('systemsStatus'));
+document.fonts.ready.then(sizeSystemCards);
 async function refresh(){
  const result=await api('status');if(!token)return;
  const health=result.health;const live=health.mode!=='demo';$('mode').textContent=live?'LIVE · Zustände aus der konfigurierten Datenquelle':'DEMO · Ausschliesslich synthetische Daten';
@@ -74,6 +88,7 @@ async function refresh(){
  for(const [category,title] of Object.entries(categories)){const members=ordered.filter(item=>item.key===category);if(!members.length)continue;const section=element('section',undefined,'overview-group');section.append(element('h3',title+' · '+members.length+' aktiv'));const grid=element('div',undefined,'status-grid');section.append(grid);container.append(section);
  for(const {key,e} of members){const card=element('article',undefined,'status-card '+(Object.hasOwn(labels,e.status)?e.status:'unknown'));card.append(element('h3',e.label),element('p',(categories[key]||key)+' · '+(labels[e.status]||'Unbekannt')));for(const s of e.sensors)card.append(element('p',s.key+': '+(labels[s.status]||'Unbekannt')+(s.reason?' · '+s.reason:''),'muted'));grid.append(card);}}
  if(!container.children.length)container.append(element('p','Keine aktiven Systeme. Unter «Systeme / PRTG» hinzufügen oder aktivieren.','empty'));
+ sizeSystemCards();
  $('versions').replaceChildren();$('upload').disabled=!result.firmwareEnabled||busy;
  $('firmwareState').textContent=!result.firmwareEnabled?'Firmware-Speicher ist serverseitig nicht eingerichtet.':result.firmwareError?'Firmware-Archiv konnte nicht geprüft werden. Server-Speicher und Protokoll prüfen.':result.versions.length?result.versions.length+' von 8 Versionen bereitgestellt.':'Noch keine Firmware bereitgestellt.';
  for(const [index,v] of result.versions.entries()){const card=element('article',undefined,'status-card');card.append(element('h3',v.version+(index===0?' · Neueste':'')),element('p',(v.size/1024/1024).toFixed(2)+' MiB · Signatur und Board geprüft'),element('p','SHA256: '+v.sha256,'hash'));$('versions').append(card);}
