@@ -1,0 +1,16 @@
+#!/bin/sh
+# Local safety net; approval must refer to exactly the reviewed commit.
+set -eu
+approval=$(git rev-parse --git-path publication-approved-commit)
+head=$(git rev-parse HEAD)
+if [ ! -f "$approval" ] || [ "$(cat "$approval")" != "$head" ]; then
+  echo 'STOP: explicit user approval for this public commit is required. See WORKFLOW.md.' >&2
+  exit 1
+fi
+while read -r local_ref local_oid remote_ref remote_oid; do
+  commit=$(git rev-parse "$local_oid^{commit}" 2>/dev/null) || exit 1
+  if [ "$commit" != "$head" ]; then
+    echo 'STOP: approval covers HEAD only; other commits or deletions are not approved.' >&2
+    exit 1
+  fi
+done

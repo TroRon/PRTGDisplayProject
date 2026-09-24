@@ -114,3 +114,7 @@ python tools/check-public.py
 ```
 
 Der Veröffentlichungscheck prüft Release-Hashes, typische Schlüssel-/Tokenmuster, persönliche Buildpfade und ZIP-Inhalte. Er ersetzt nicht die manuelle Prüfung von Inventaren, Adressen und allen zu veröffentlichenden Dateien. Docker-Build, Live-Sensoren und reale Hardware separat abnehmen.
+
+## Entwicklung und Veröffentlichungen
+
+Die Trennung von Entwicklung und Distribution sowie die verpflichtende Benutzerfreigabe sind in [WORKFLOW.md](WORKFLOW.md) beschrieben. Version 0.8.1 wurde vom Betreiber auf dem realen Display erfolgreich bestätigt, einschliesslich OTA und ausgeblendeter inaktiver Rubriken. Eine gezielte Rollback-Abnahme steht weiterhin aus.

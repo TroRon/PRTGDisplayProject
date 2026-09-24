@@ -1,6 +1,6 @@
 # Display einrichten
 
-Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151**, 1024 × 600, 16 MB Flash und 8 MB Octal-PSRAM. Version **0.7.2** ist lokal gebaut und getestet; der Betreiber hat die Live-Anzeige am realen Gerät bestätigt. Der reale OTA-/Rollback-Test steht noch aus.
+Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151**, 1024 × 600, 16 MB Flash und 8 MB Octal-PSRAM. Version **0.8.1** ist am realen Gerät bestätigt, einschliesslich OTA-Installation und ausgeblendeter inaktiver Rubriken. Ein gezielter Rollback-Test steht noch aus.
 
 ## 1. USB-Paket herunterladen
 
@@ -164,4 +164,4 @@ Weitere technische Angaben: [BUILD-INFO.json](releases/0.8.1/BUILD-INFO.json), [
 
 ## Aktive Rubriken ab 0.8.1
 
-Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktive Rubriken mit Fehlern oder unbekannten Daten bleiben sichtbar. Die übrigen Kacheln verteilen sich gleichmässig. Hinweise bleiben erreichbar. Im Demo-Modus sind alle fiktiven Beispielrubriken aktiv. Dafür sind keine neuen Einstellungen und kein Aggregator-Update nötig. 0.8.1 kann über OTA installiert werden; nach Neustart innerhalb von 120 Sekunden bestätigen. Der physische Test dieser Version steht aus.
+Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktive Rubriken mit Fehlern oder unbekannten Daten bleiben sichtbar. Die übrigen Kacheln verteilen sich gleichmässig. Hinweise bleiben erreichbar. Im Demo-Modus sind alle fiktiven Beispielrubriken aktiv. Dafür sind keine neuen Einstellungen und kein Aggregator-Update nötig. 0.8.1 kann über OTA installiert werden; nach Neustart innerhalb von 120 Sekunden bestätigen. Der Betreiber hat diese Version auf dem realen Display bestätigt.
