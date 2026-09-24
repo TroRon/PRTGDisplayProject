@@ -1,0 +1,24 @@
+{
+  "prtg_url": "https://prtg.example.org",
+  "poll_seconds": 30,
+  "stale_seconds": 300,
+  "request_timeout_seconds": 10,
+  "entities": [
+    {
+      "id": "server-a",
+      "label": "Mein Server",
+      "category": "compute",
+      "sensors": [
+        {
+          "key": "health",
+          "id": null,
+          "metrics": {
+            "cpu": "CPU Usage",
+            "ram": "RAM Usage",
+            "root_disk": "Root Disk Usage"
+          }
+        }
+      ]
+    }
+  ]
+}

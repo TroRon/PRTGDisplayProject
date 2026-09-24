@@ -1,0 +1,13 @@
+{
+  "name": "prtg-display-aggregator",
+  "version": "0.7.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/main.mjs",
+    "demo": "node src/main.mjs --demo",
+    "discover": "node src/main.mjs --discover",
+    "test": "node --test"
+  }
+}

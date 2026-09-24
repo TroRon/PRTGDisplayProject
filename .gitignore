@@ -1,0 +1,17 @@
+secrets/
+**/secrets/
+.env
+.env.*
+!.env.example
+**/data/
+**/aggregator.local.json
+**/.pio/
+**/managed_components/
+**/build/
+**/sdkconfig
+!Display/releases/*/sdkconfig
+**/sdkconfig.old
+**/__pycache__/
+*.pyc
+*.log
+node_modules/

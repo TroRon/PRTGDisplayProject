@@ -1,0 +1,6 @@
+**
+!package.json
+!src/
+!src/**
+!config/
+!config/aggregator.example.json

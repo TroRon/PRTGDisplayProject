@@ -1,0 +1,43 @@
+services:
+  aggregator:
+    image: prtg-display-aggregator:0.7.0
+    build: .
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8787
+      CONFIG_FILE: /app/config/local.json
+      PRTG_API_TOKEN_FILE: /run/secrets/prtg_api_token
+      PANEL_API_TOKEN_FILE: /run/secrets/panel_api_token
+      OTA_ADMIN_TOKEN_FILE: /run/secrets/ota_admin_token
+      OTA_DIRECTORY: /app/firmware-store
+    volumes:
+      - type: bind
+        source: ${DATA_DIRECTORY:-./data}/config/aggregator.json
+        target: /app/config/local.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${DATA_DIRECTORY:-./data}/secrets/prtg_api_token.txt
+        target: /run/secrets/prtg_api_token
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${DATA_DIRECTORY:-./data}/secrets/panel_api_token.txt
+        target: /run/secrets/panel_api_token
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${DATA_DIRECTORY:-./data}/secrets/ota_admin_token.txt
+        target: /run/secrets/ota_admin_token
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${DATA_DIRECTORY:-./data}/firmware
+        target: /app/firmware-store
+        bind: {create_host_path: false}
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8787}:8787"

@@ -1,0 +1,3 @@
+# Public project rules
+
+This repository is a public distribution. Never copy private infrastructure inventories, hostnames, addresses, secrets, provisioned flash backups, private signing keys or private development history here. Use example.org and clearly synthetic names only. Preserve upstream licences and existing releases. The RSA public key is intentionally public; private signing keys must stay outside this repository. German documentation uses real umlauts and Swiss spelling. Changes require targeted tests and a privacy scan. Builds and local tests are not a hardware OTA/rollback acceptance test. No commit/push or production deployment without an explicit request.
