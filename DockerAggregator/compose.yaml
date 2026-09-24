@@ -1,6 +1,6 @@
 services:
   aggregator:
-    image: prtg-display-aggregator:0.8.0
+    image: prtg-display-aggregator:1.0.0
     build: .
     restart: unless-stopped
     read_only: true
@@ -13,6 +13,8 @@ services:
       PRTG_API_TOKEN_FILE: /run/secrets/prtg_api_token
       PANEL_API_TOKEN_FILE: /run/secrets/panel_api_token
       OTA_ADMIN_TOKEN_FILE: /run/secrets/ota_admin_token
+      ADMIN_DIRECTORY: /app/admin-store
+      ADMIN_ORIGIN: ${ADMIN_ORIGIN:?Set ADMIN_ORIGIN to the public HTTPS origin}
       OTA_DIRECTORY: /app/firmware-store
     volumes:
       - type: bind
@@ -38,6 +40,10 @@ services:
       - type: bind
         source: ${DATA_DIRECTORY:-./data}/firmware
         target: /app/firmware-store
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${DATA_DIRECTORY:-./data}/admin
+        target: /app/admin-store
         bind: {create_host_path: false}
     ports:
       - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8787}:8787"

@@ -49,7 +49,7 @@ export function createFirmwareService({ directory, adminToken, panelToken, key =
   }
   function packageBytes(p){const h=Buffer.alloc(4);h.writeUInt32BE(p.envelope.length);return Buffer.concat([h,p.envelope,p.image]);}
   const send = (res, status, value) => {res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });res.end(JSON.stringify(value));};
-  return async (req, res) => {
+  const handler = async (req, res) => {
     if (req.url === '/updates' && req.method === 'GET') {
       res.writeHead(200, {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'"});
       res.end(await readFile(new URL('./updates.html', import.meta.url)));return;
@@ -105,4 +105,6 @@ export function createFirmwareService({ directory, adminToken, panelToken, key =
       res.writeHead(200,{'Content-Type':binary?'application/octet-stream':'application/json','Content-Length':data.length,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(data);
     }catch {send(res,404,{error:'NO_VALID_FIRMWARE'});}
   };
+  handler.list = async () => (await releases()).map(p => p.manifest);
+  return handler;
 }

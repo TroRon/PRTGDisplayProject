@@ -21,3 +21,6 @@ Release 1.0.0 explicitly authorized: verified NVS factory reset with local confi
 Explicit replacement approval for 1.0.0 R2: automatic setup hotspot and WebAdmin passwords of at least five bytes. Firmware version/sequence unchanged. Public release files replaced once; original retained privately. Source tag v1.0.0-r2 distinguishes this revision without rewriting v1.0.0. QR/captive portal not included. New future changes still require approval.
 
 Explicit operator approval for 1.0.0 R3: QR setup and AP-only captive portal, docs, commit/push and public release/OTA replacement. Source tag v1.0.0-r3; version/sequence unchanged. Private R1/R2 preserved. Physical QR/AP acceptance pending. Future changes still need approval.
+
+
+Aggregator-WebAdmin 1.0.0: aktuelle ausdrückliche Freigabe für diesen geprüften Stand, Commit/Push beider Repos und produktives Deployment erteilt. Keine Änderung an Display-Firmware oder OTA-Direktkanal. Künftige Veröffentlichungen benötigen erneut Freigabe.

@@ -1,5 +1,9 @@
 # PRTG Display Project
 
+## Aggregator 1.0.0 – WebAdmin
+
+Systemnamen, Kategorien, Sensoren und PRTG-Verbindung im Browser konfigurieren. Signierte Firmware-Pakete hochladen und am Display über den Aggregator auswählen. Eigenständiger Administrator-Zugang und persistente Einstellungen. [Einrichtung und Bedienung](DockerAggregator/WEBADMIN.md). Display-Firmware 1.0.0 R3 unverändert.
+
 **Dein Monitoring. Dein Netzwerk. Ein eigenes Touch-Display.**
 
 PRTG Display Project bringt bestehende PRTG-Messwerte auf ein eigenständiges 5-Zoll-Panel. PRTG überwacht die Systeme, ein kleiner Docker-Dienst bereitet die Daten auf, das Display zeigt ihren Zustand und Details per Touch.

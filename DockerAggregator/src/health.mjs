@@ -37,7 +37,7 @@ export function buildHealth(config, records, { now = Date.now(), mode = 'live', 
     data_complete: false, categories: {}, alerts: []
   };
   for (const category of categories) {
-    const entities = config.entities.filter(e => e.category === category).map(entity => {
+    const entities = config.entities.filter(e => e.enabled !== false && e.category === category).map(entity => {
       const sensors = entity.sensors.map(sensor => sensorHealth(sensor, records.get(`${entity.id}/${sensor.key}`), now, config.stale_seconds * 1000));
       const status = overallStatus(sensors.map(s => s.status));
       for (const sensor of sensors) {
@@ -70,7 +70,7 @@ export class Collector {
     if (this.running) return;
     this.running = true;
     try {
-      const jobs = this.config.entities.flatMap(e => e.sensors.map(s => ({ key: `${e.id}/${s.key}`, sensor: s })));
+      const jobs = this.config.entities.filter(e => e.enabled !== false).flatMap(e => e.sensors.map(s => ({ key: `${e.id}/${s.key}`, sensor: s })));
       // Bounded concurrency, publish atomically after each poll.
       const next = new Map();
       let index = 0;

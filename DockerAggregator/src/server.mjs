@@ -15,7 +15,7 @@ function authorized(header, token) {
   return timingSafeEqual(hash(header || ''), hash(`Bearer ${token}`));
 }
 
-export function createApi(collector, token = '', allowedClients = null, firmware = null) {
+export function createApi(collector, token = '', allowedClients = null, firmware = null, admin = null) {
   return createServer((req, res) => {
     const send = (code, value) => {
       res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
@@ -25,6 +25,9 @@ export function createApi(collector, token = '', allowedClients = null, firmware
     // Trust the TCP peer only; client-supplied forwarding headers cannot grant access.
     const peer = req.socket.remoteAddress?.replace(/^::ffff:/, '');
     if (allowedClients && !allowedClients.has(peer)) return send(403, { error: 'CLIENT_NOT_ALLOWED' });
+    if (admin && (req.url === '/admin' || req.url === '/admin/' || req.url === '/admin.js' || req.url === '/admin.css' || req.url.startsWith('/api/admin/'))) {
+      Promise.resolve(admin(req,res)).catch(() => { if(!res.headersSent)send(500,{error:'INTERNAL_ERROR'});else res.destroy(); });return;
+    }
     if (firmware && (req.url.startsWith('/api/v1/firmware/') || req.url === '/updates' || req.url === '/updates.js')) {
       Promise.resolve(firmware(req,res)).catch(() => { if(!res.headersSent)send(500,{error:'INTERNAL_ERROR'});else res.destroy(); });return;
     }

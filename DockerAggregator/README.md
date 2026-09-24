@@ -1,3 +1,9 @@
+# Aggregator 1.0.0 – WebAdmin
+
+Freigegebener Aggregator 1.0.0 mit lokal geprüfter Weboberfläche und HTTP-API. WebAdmin unter **/admin**: Systeme/PRTG konfigurieren, signierte Firmware hochladen und am Display über den Kanal Aggregator auswählen. [Bedienung und Installation](WEBADMIN.md).
+
+`ADMIN_ORIGIN` in `.env` setzen und `prepare-storage.sh` für den neuen Verwaltungsordner ausführen. Bestehende schreibgeschützte Konfigurations- und Secret-Mounts bleiben erhalten. Web-Einstellungen werden separat in `admin/settings.json` gespeichert und haben nach dem ersten Speichern Vorrang. PRTG-Token lässt sich im WebAdmin verdeckt ersetzen. Administrator- und Panel-Token bleiben Installations-Secrets.
+
 # DockerAggregator
 
 Der Aggregator fragt deine konfigurierten PRTG-Sensoren ab, vereinheitlicht Zustände und liefert eine kleine HTTPS-fähige API für das Display. Er enthält weder eine feste Serverliste noch einen vorgegebenen PRTG-Endpunkt. HTTPS übernimmt dein Reverse Proxy.
@@ -27,7 +33,7 @@ In `.env` sind Datenverzeichnis, Port, Bind-Adresse und Compose-Projektname anpa
 
 Die Beispielkonfiguration enthält genau ein neutrales System und eine nicht gesetzte Sensor-ID. `null` muss durch die echte ID ersetzt werden. Weitere Systeme durch zusätzliche Einträge ergänzen. Kategorien: `compute` (Anzeige Infra), `backup`, `docker`, `network`, `services`. Nicht belegte Kategorien bleiben deaktiviert.
 
-Namen im Display kommen aus **`entities[].label`**. Der Panel-Titel selbst wird separat am Gerät eingestellt. Kanalzuordnung und Beispiele stehen unter [PRTG Sensoren](../PRTG%20Sensoren/README.md).
+Namen im Display kommen aus **`entities[].label`** und lassen sich im WebAdmin ändern. Der Panel-Titel selbst wird separat am Gerät eingestellt. Kanalzuordnung und Beispiele stehen unter [PRTG Sensoren](../PRTG%20Sensoren/README.md).
 
 ## 3. Starten
 

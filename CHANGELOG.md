@@ -1,5 +1,9 @@
 # Änderungen
 
+## Aggregator 1.0.0 – WebAdmin
+
+Systemnamen, Kategorien, Sensoren und PRTG-Verbindung im Browser konfigurieren. Signierte Firmware-Pakete hochladen und am Display über den Aggregator auswählen. Eigenständiger Administrator-Zugang und persistente Einstellungen. [Einrichtung und Bedienung](DockerAggregator/WEBADMIN.md). Display-Firmware 1.0.0 R3 unverändert.
+
 ## 1.0.0 Revision 3 – WLAN-QR-Code und Captive Portal
 
 Firmware-Version **1.0.0**, OTA-Sequenz **10000**; Quelltag **v1.0.0-r3**. Ausdrücklich freigegebener Ersatz von R2, keine Änderung bestehender Tags oder privater Archive.

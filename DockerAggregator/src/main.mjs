@@ -1,10 +1,12 @@
 import { createFirmwareService } from './firmware.mjs';
 import { fileURLToPath } from 'node:url';
 import { readConfig, readSecret } from './config.mjs';
-import { PrtgClient, demoCollect } from './prtg.mjs';
-import { Collector } from './health.mjs';
+import { PrtgClient } from './prtg.mjs';
+import { MonitoringRuntime } from './runtime.mjs';
+import { createAdminStore } from './admin-store.mjs';
+import { createAdmin } from './admin.mjs';
 import { createApi, parseAllowedClients } from './server.mjs';
-import { createLogger, createPollReporter } from './logging.mjs';
+import { createLogger } from './logging.mjs';
 
 const log = createLogger();
 
@@ -13,8 +15,14 @@ try {
   if (args.some(a => !['--demo', '--discover'].includes(a)) || args.length > 1) throw new Error('INVALID_ARGUMENTS');
   const demo = args.includes('--demo');
   const config = readConfig(process.env.CONFIG_FILE || fileURLToPath(new URL('../config/aggregator.example.json', import.meta.url)));
-  const client = demo ? null : new PrtgClient(config, readSecret(process.env, 'PRTG_API_TOKEN'));
+  const prtgToken = readSecret(process.env, 'PRTG_API_TOKEN', !demo && !process.env.ADMIN_DIRECTORY);
+  let client = demo ? null : new PrtgClient(config, prtgToken);
   if (args.includes('--discover')) {
+    if(process.env.ADMIN_DIRECTORY){
+      const saved=await createAdminStore({directory:process.env.ADMIN_DIRECTORY,config,prtgToken});
+      const effective=saved.effective();if(!effective.prtgToken)throw Error('MISSING_PRTG_TOKEN');
+      client=new PrtgClient(effective.config,effective.prtgToken);
+    }
     const rows = await client.discover();
     // Only allowlisted metadata, no messages, tokens or request URLs.
     console.log(JSON.stringify(rows.map(r => ({ id: r.objid, device: r.device, sensor: r.sensor, status_raw: r.status_raw, lastcheck_raw: r.lastcheck_raw })), null, 2));
@@ -23,32 +31,24 @@ try {
     const port = Number(process.env.PORT || 8787);
     if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('INVALID_PORT');
     const panelToken = readSecret(process.env, 'PANEL_API_TOKEN', !demo || !['127.0.0.1', '::1'].includes(host));
-    const collector = new Collector(config, demo ? demoCollect : s => client.collect(s), demo ? 'demo' : 'live');
-    const firmware = process.env.OTA_DIRECTORY ? createFirmwareService({ directory: process.env.OTA_DIRECTORY, adminToken: readSecret(process.env, 'OTA_ADMIN_TOKEN'), panelToken, log }) : null;
-    const server = createApi(collector, panelToken, parseAllowedClients(process.env.ALLOWED_CLIENT_IPS), firmware);
+    const runtime = new MonitoringRuntime({config,prtgToken,demo,log});
+    const adminToken = (process.env.OTA_DIRECTORY || process.env.ADMIN_DIRECTORY) ? readSecret(process.env, 'OTA_ADMIN_TOKEN') : '';
+    const firmware = process.env.OTA_DIRECTORY ? createFirmwareService({directory:process.env.OTA_DIRECTORY,adminToken,panelToken,log}) : null;
+    let admin = null;
+    if(process.env.ADMIN_DIRECTORY){
+      const store = await createAdminStore({directory:process.env.ADMIN_DIRECTORY,config,prtgToken,apply:next=>runtime.update(next)});
+      runtime.update(store.effective());
+      admin=createAdmin({origin:process.env.ADMIN_ORIGIN,token:adminToken,panelToken,store,runtime,firmware,log});
+    }
+    const server = createApi(runtime, panelToken, parseAllowedClients(process.env.ALLOWED_CLIENT_IPS), firmware, admin);
     server.requestTimeout = firmware ? 120000 : 10000;
     server.headersTimeout = 10000;
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, host, resolve); });
-    let stopped = false;
-    let timer;
-    let round = 0;
-    const report = createPollReporter(log);
-    log('INFO', `EagleNET Aggregator: ${demo ? 'DEMO (synthetische Daten)' : 'LIVE'}; Port ${port}; Abfragepause ${config.poll_seconds} s; veraltet nach ${config.stale_seconds} s; API-Token-Schutz ${panelToken ? 'aktiv' : 'inaktiv (lokale Demo)'}. Zeitstempel in UTC.`);
-    const tick = async () => {
-      const started = performance.now();
-      round++;
-      log('INFO', `Runde ${round}: ${demo ? 'Demo-Daten erzeugen' : 'PRTG-Abfrage gestartet'}.`);
-      try {
-        await collector.poll();
-        report(collector.snapshot(), round, Math.round(performance.now() - started));
-      }
-      catch { log('ERROR', `Runde ${round}: Verarbeitung fehlgeschlagen; nächste Abfrage nach ${config.poll_seconds} s.`); }
-      if (!stopped) timer = setTimeout(tick, config.poll_seconds * 1000);
-    };
-    void tick();
+    log('INFO', `EagleNET Aggregator: ${demo ? 'DEMO (synthetische Daten)' : 'LIVE'}; Port ${port}; WebAdmin ${admin ? 'aktiv' : 'aus'}; Firmware ${firmware ? 'aktiv' : 'aus'}. Zeitstempel in UTC.`);
+    runtime.start();
     for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => {
       log('INFO', `${signal}: Aggregator wird beendet.`);
-      stopped = true; clearTimeout(timer); server.close();
+      runtime.stop(); server.close();
       setTimeout(() => process.exit(0), 1500).unref();
     });
   }
