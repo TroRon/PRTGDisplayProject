@@ -176,7 +176,7 @@ void settingsOpen() {
     notice=text("Speichern verbindet neu. Schliessen verwirft ungespeicherte Eingaben; Registerwechsel erhält sie.",24,224,976);
     lv_obj_set_height(notice,20);lv_label_set_long_mode(notice,LV_LABEL_LONG_WRAP);
     saveButton=button("Speichern & verbinden",24,246,300,save);
-    text("1.0.1 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
+    text("1.0.2 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
     keyboard=lv_keyboard_create(parent);lv_obj_set_align(keyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(keyboard,0,290);lv_obj_set_size(keyboard,1024,200);
     lv_obj_set_style_text_font(keyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);
     lv_keyboard_set_textarea(keyboard,ssid);
@@ -231,6 +231,7 @@ void settingsOpen() {
         snprintf(c.name,sizeof(c.name),"%s",name);
         lv_label_set_text(panelNotice,preferences::save(c)?"Panel-Einstellungen gespeichert. Neue Adresse gilt ab der nächsten Abfrage.":"Nicht gespeichert: HTTPS-Adresse/Name prüfen; während OTA kurz warten.");
     });
+    button("Anzeige",350,246,310,[](lv_event_t*){displayOptionsOpen();});
     panelKeyboard=lv_keyboard_create(parent);lv_obj_set_align(panelKeyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(panelKeyboard,0,290);lv_obj_set_size(panelKeyboard,1024,200);
     lv_obj_set_style_text_font(panelKeyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);lv_keyboard_set_textarea(panelKeyboard,panelOrigin);
     parent=pages[5];lv_obj_clear_flag(parent,LV_OBJ_FLAG_SCROLLABLE);
@@ -335,3 +336,5 @@ void settingsTick() {
 void settingsShowFirmware(){if(settings_impl::screen)settings_impl::selectTab(3);}
 
 void settingsShowWebAccess(){if(settings_impl::screen)settings_impl::selectTab(5);}
+
+bool settingsIsOpen(){return settings_impl::screen!=nullptr;}

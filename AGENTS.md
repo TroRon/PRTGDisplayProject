@@ -32,3 +32,5 @@ Dokumentationsauftrag 24.09.2026: gesamtes Projekt privat und öffentlich mit ne
 Aktuelle ausdrückliche Freigabe: «Du kannst pushen und deployen» für Aggregator 1.1.0 samt gesamter privater/öffentlicher Projektdokumentation und synthetischen Bildern. Commit/Push beider Repos und Installation im bestehenden Stack autorisiert. Display-BINs und öffentlicher OTA-Direktkanal unverändert.
 
 Aktuelle Freigabe: «Sehr gut, so umsetzen und deployen, ebenso Firmware, wenn nötig» umfasst gruppierten WebAdmin 1.2.0 und Display-Reihenfolgekorrektur 1.0.1, Dokumentation, Veröffentlichung und Aggregator-Deployment/OTA-Bereitstellung. Physische Installation/Bestätigung am Panel steht aus. Künftige Änderungen benötigen erneut Freigabe.
+
+Aktuelle ausdrückliche Freigabe: schlanke Firmware 1.0.2 veröffentlichen und per OTA bereitstellen. Favoriten, Störungsautomatik und Verlauf nicht mitbauen oder später ohne neue Freigabe reaktivieren. Aggregator-Software unverändert.

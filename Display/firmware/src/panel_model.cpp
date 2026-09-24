@@ -148,11 +148,14 @@ bool parseHealth(const char* json, size_t length, bool allowDemo, int64_t utcNow
       if (out.entityCount >= MaxEntities) return false;
       Entity& entity = out.entities[out.entityCount++];
       entity.category=i; entity.status=state;
+      bool timestampsValid=true;int64_t oldest=0;
       snprintf(entity.name,sizeof(entity.name),"%s",e["label"].as<const char*>()); trimUtf8(entity.name);
       bool completeDetails = true;
       // Reserve room for an explicit truncation notice instead of silently losing systems.
       const size_t limit = sizeof(entity.details)-40;
       for (JsonObject s : e["sensors"].as<JsonArray>()) {
+        const int64_t observed=timestamp(s["observed_at"]);
+        if(observed<=0)timestampsValid=false;else if(!oldest||observed<oldest)oldest=observed;
         const char* reason = s["reason"] | "";
         if (*reason) completeDetails = append(entity.details,limit,"%s\n",reasonText(reason)) && completeDetails;
         for (JsonPair metric : s["metrics"].as<JsonObject>()) {
@@ -161,6 +164,7 @@ bool parseHealth(const char* json, size_t length, bool allowDemo, int64_t utcNow
           completeDetails = append(entity.details,limit,"%s\n",line) && completeDetails;
         }
       }
+      entity.observedAt=timestampsValid&&oldest>0&&oldest<=UINT32_MAX?uint32_t(oldest):0;
       if (!completeDetails) append(entity.details,sizeof(entity.details),"\nWeitere Kennzahlen in PRTG");
       if (!*entity.details) snprintf(entity.details,sizeof(entity.details),"Keine Kennzahlen verfügbar");
     }

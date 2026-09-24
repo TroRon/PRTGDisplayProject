@@ -49,3 +49,5 @@ Der Betreiber hat den Ersatz von 1.0.0 durch Revision 2 bei unveränderter Firmw
 Erneute ausdrückliche Freigabe für **1.0.0 R3**: QR-Code und Captive Portal samt Anleitung, Commit/Push und Ersatz des öffentlichen 1.0.0-Pakets/OTA-Angebots. Separater Quelltag v1.0.0-r3; private R1/R2-Archive und bestehende Tags bleiben erhalten. Keine allgemeine Freigabe für spätere Änderungen.
 
 Aktuelle konkrete Freigabe: gruppierter WebAdmin 1.2.0 und Firmware-Reihenfolgekorrektur 1.0.1 samt Veröffentlichung und Deployment/OTA-Bereitstellung. Vorherige Releases bleiben unverändert.
+
+Aktuelle ausdrückliche Freigabe: schlanke Firmware 1.0.2 veröffentlichen und per OTA bereitstellen. Favoriten, Störungsautomatik und Verlauf nicht mitbauen oder später ohne neue Freigabe reaktivieren. Aggregator-Software unverändert.

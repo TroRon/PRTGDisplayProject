@@ -10,6 +10,8 @@ static lv_obj_t *brand, *health, *connection, *footer, *tiles[6], *tileNames[6],
 static lv_obj_t *section, *pageTitle, *backButton, *detailList, *scrollHint, *demoButton, *shade;
 static int selected=-1, width=320, height=240;
 static bool wide=false, dimmed=false;
+static bool hardwareIdleControl=false;
+static void (*decorateEntity)(lv_obj_t*,const panel::Entity&)=nullptr;
 static uint32_t activity=0, lastClock=0;
 static void (*advance)()=nullptr;
 static lv_color_t color(panel::Status s) {
@@ -80,6 +82,7 @@ static void makeCard(const char* name,panel::Status status,const char* body,bool
 }
 // Hardware follows the configured order; the historical simulator keeps severity order.
 static bool preserveEntityOrder=false;
+static bool uniformSystemCardHeights=false;
 static void renderCards(bool resetScroll) {
   if(!wide&&selected<0)return;
   int scroll=resetScroll?0:lv_obj_get_scroll_y(detailList);lv_obj_clean(detailList);
@@ -102,13 +105,27 @@ static void renderCards(bool resetScroll) {
     for(unsigned rank=0;rank<(preserveEntityOrder?1u:4u);rank++)for(unsigned i=0;i<shown.entityCount;i++) {
       const auto& entity=shown.entities[i];
       if((selected<0||entity.category==unsigned(selected))&&(preserveEntityOrder||panel::severityRank(entity.status)==rank)) {
-        makeCard(entity.name,entity.status,entity.details);++count;
+        makeCard(entity.name,entity.status,entity.details);
+        if(decorateEntity)decorateEntity(lv_obj_get_child(detailList,-1),entity);
+        ++count;
       }
     }
     if(!count)makeCard(selected<0?"Warte auf Daten":panel::categoryName(selected),panel::Status::Unknown,
       selected>=0&&!shown.categories[selected].enabled?"Noch nicht eingerichtet":shown.message,false);
   }
-  lv_obj_update_layout(detailList);lv_obj_scroll_to_y(detailList,scroll,LV_ANIM_OFF);updateScrollHint();
+  lv_obj_update_layout(detailList);
+  // Measure natural content first, so no sensor text is clipped. Notes keep their own height.
+  if(uniformSystemCardHeights&&selected!=5) {
+    lv_coord_t tallest=0;
+    for(uint32_t i=0;i<lv_obj_get_child_cnt(detailList);++i) {
+      const auto h=lv_obj_get_height(lv_obj_get_child(detailList,i));
+      if(h>tallest)tallest=h;
+    }
+    for(uint32_t i=0;i<lv_obj_get_child_cnt(detailList);++i)
+      lv_obj_set_height(lv_obj_get_child(detailList,i),tallest);
+    lv_obj_update_layout(detailList);
+  }
+  lv_obj_scroll_to_y(detailList,scroll,LV_ANIM_OFF);updateScrollHint();
 }
 static void navigate(int category) {
   wake();selected=category;
@@ -189,6 +206,6 @@ void uiUpdate(const panel::Snapshot& value) {
 }
 void uiLoop(uint32_t now) {
   if(uint32_t(now-lastClock)>=1000){lastClock=now;updateConnection(now);}
-  if(!dimmed&&uint32_t(now-activity)>60000){dimmed=true;visible(shade,true);boardDim(true);}
+  if(!hardwareIdleControl&&!dimmed&&uint32_t(now-activity)>60000){dimmed=true;visible(shade,true);boardDim(true);}
   lv_timer_handler();
 }

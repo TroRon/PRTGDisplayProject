@@ -26,7 +26,9 @@ static void hardwareCategories(){
         ++slot;
     }
 }
+#include "display_features.inc"
 void hardwareSettingsAttach() {
+    displayfeatures::begin();
     lv_label_set_long_mode(brand,LV_LABEL_LONG_DOT);
     lv_obj_set_height(brand,26);
     advance=settingsOpen;
@@ -62,10 +64,11 @@ static void hardwareDemoBanner(){
 }
 void uiUpdate(const panel::Snapshot& value){
     preserveEntityOrder=true;
+    uniformSystemCardHeights=true;
     sharedUiUpdate(value);
     hardwareCategories();
     lv_obj_set_style_bg_opa(connection,LV_OPA_TRANSP,0);
     hardwareDemoBanner();
 }
-void uiLoop(uint32_t now){sharedUiLoop(now);hardwareDemoBanner();}
+void uiLoop(uint32_t now){sharedUiLoop(now);hardwareDemoBanner();displayfeatures::tick(now);}
 bool hardwareDemoActive(){return shown.demo;}

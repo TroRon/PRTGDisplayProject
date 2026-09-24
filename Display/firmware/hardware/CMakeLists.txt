@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-set(PROJECT_VER "1.0.1")
+set(PROJECT_VER "1.0.2")
 # Public releases must not embed the developer's absolute filesystem paths.
 if(DEFINED PUBLIC_SOURCE_ROOT)
     add_compile_options("-ffile-prefix-map=${PUBLIC_SOURCE_ROOT}=." "-fmacro-prefix-map=${PUBLIC_SOURCE_ROOT}=.")

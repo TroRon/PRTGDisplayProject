@@ -16,6 +16,7 @@ struct Category {
 struct Entity {
   unsigned category = 0;
   Status status = Status::Unknown;
+  uint32_t observedAt = 0;
   char name[64] = {};
   char details[384] = {};
 };

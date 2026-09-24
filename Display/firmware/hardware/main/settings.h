@@ -8,3 +8,6 @@ bool hardwareDemoActive();
 void settingsShowFirmware();
 
 void settingsShowWebAccess();
+
+bool settingsIsOpen();
+void displayOptionsOpen();
