@@ -24,7 +24,7 @@ flowchart LR
 ## Was das Display zeigt
 
 - Systemkarten mit frei vergebenen Namen, Status und Messwerten.
-- Bereiche **Infra**, **Backup**, **Docker**, **Netzwerk** und **Dienste**. Nicht konfigurierte Bereiche bleiben als solche erkennbar.
+- Bereiche **Infra**, **Backup**, **Docker**, **Netzwerk** und **Dienste**. Ab Firmware 0.8.1 werden nicht konfigurierte Bereiche ausgeblendet; aktive Bereiche mit fehlenden Daten oder Fehlern bleiben sichtbar.
 - Echte Fehler, fehlende Daten und veraltete Werte werden unterschieden. Ein Verbindungsfehler wird nicht als grüner Zustand dargestellt.
 - Eine ausdrücklich gekennzeichnete Demo mit fiktiven Daten für Vorführungen bei vollständigem Ausfall.
 - Einstellungen für Verbindung, Panel, Systeminformationen, Projektinformationen und Firmware-Updates.
@@ -81,7 +81,7 @@ Die Manifest-Adresse dieses Repos lautet:
 https://raw.githubusercontent.com/TroRon/PRTGDisplayProject/main/Display/ota/manifest.json
 ```
 
-Das Manifest auf `main` verweist auf Version 0.8.0. Ab 0.8.0 zeigt «Versionen prüfen» einen Katalog mit Update, Downgrade und Neuinstallation. Ältere Firmware erhält weiterhin das neueste Angebot. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
+Das Manifest auf `main` verweist auf Version 0.8.1. Ab 0.8.0 zeigt «Versionen prüfen» einen Katalog mit Update, Downgrade und Neuinstallation. Ältere Firmware erhält weiterhin das neueste Angebot. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
 
 ## Datenschutz und Zugangsdaten
 
@@ -91,7 +91,7 @@ Das Display spricht bei Live-Daten mit **deinem Aggregator**; PRTG-Zugangsdaten 
 
 ## Projektstand und Mitwirkung
 
-**Aktuell 0.8.0:** Versionsauswahl für Update, Downgrade und Neuinstallation, mit ausdrücklicher Bestätigung und genaueren Download-Fehlern. [Änderungen und Upgrade-Anleitung](CHANGELOG.md) · [USB-Paket](Display/releases/prtg-display-0.8.0.zip).
+**Aktuell 0.8.1:** Nicht aktive Rubriken werden automatisch ausgeblendet, die übrigen Kacheln nutzen den freien Platz. Update, Downgrade und Neuinstallation bleiben verfügbar. [Änderungen und Upgrade-Anleitung](CHANGELOG.md) · [USB-Paket](Display/releases/prtg-display-0.8.1.zip).
 
 Die vollständige USB-Einrichtung erfasst auch Aggregator-Adresse und Displayname. «Nur Panel» ergänzt diese Angaben, ohne WLAN/Token oder OTA erneut einzugeben.
 

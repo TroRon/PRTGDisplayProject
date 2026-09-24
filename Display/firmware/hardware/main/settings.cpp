@@ -116,7 +116,7 @@ void settingsOpen() {
     notice=text("Speichern verbindet neu. Schliessen verwirft ungespeicherte Eingaben; Registerwechsel erhält sie.",24,224,976);
     lv_obj_set_height(notice,20);lv_label_set_long_mode(notice,LV_LABEL_LONG_WRAP);
     saveButton=button("Speichern & verbinden",24,246,300,save);
-    text("0.8.0 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
+    text("0.8.1 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
     keyboard=lv_keyboard_create(parent);lv_obj_set_align(keyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(keyboard,0,290);lv_obj_set_size(keyboard,1024,200);
     lv_obj_set_style_text_font(keyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);
     lv_keyboard_set_textarea(keyboard,ssid);

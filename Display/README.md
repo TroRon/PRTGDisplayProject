@@ -4,7 +4,7 @@ Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, S
 
 ## 1. USB-Paket herunterladen
 
-Verwende [prtg-display-0.7.1.zip](releases/prtg-display-0.8.0.zip) und entpacke es vollständig. Alle folgenden Flash-Befehle laufen im entpackten Ordner. Einzelne Dateien nicht aus verschiedenen Releases mischen.
+Verwende [prtg-display-0.8.1.zip](releases/prtg-display-0.8.1.zip) und entpacke es vollständig. Alle folgenden Flash-Befehle laufen im entpackten Ordner. Einzelne Dateien nicht aus verschiedenen Releases mischen.
 
 Enthalten sind vier getrennte Images, **kein Full-Flash-Abbild**. Das Paket enthält keine WLAN-Zugangsdaten und keine Aggregator-Adresse. Es darf keine Sicherung eines bereits eingerichteten Geräts ersetzen.
 
@@ -38,7 +38,7 @@ python3 -m venv .venv
 
 Falls keine Verbindung entsteht: anderes Datenkabel/USB-Port testen; bei Bedarf BOOT gedrückt halten, RESET kurz drücken, BOOT loslassen und den Port erneut auswählen. Bei Übertragungsfehlern `flash.py --baud 115200` verwenden. Kein `erase_flash` als Routine-Schritt ausführen.
 
-Die genauen Offsets und der manuelle Befehl stehen in [FLASH.md](releases/0.8.0/FLASH.md). Bei einem bestehenden Gerät bleiben NVS-Einstellungen erhalten, sofern es das bisherige Projektlayout verwendet. Die vier Images setzen die OTA-Auswahl zurück und starten die neue Factory-Anwendung. Von Versionen vor 0.6 ist diese USB-Installation für das neue OTA-Partitionslayout erforderlich.
+Die genauen Offsets und der manuelle Befehl stehen in [FLASH.md](releases/0.8.1/FLASH.md). Bei einem bestehenden Gerät bleiben NVS-Einstellungen erhalten, sofern es das bisherige Projektlayout verwendet. Die vier Images setzen die OTA-Auswahl zurück und starten die neue Factory-Anwendung. Von Versionen vor 0.6 ist diese USB-Installation für das neue OTA-Partitionslayout erforderlich.
 
 ## 4. Verbindung und Anzeigename eintragen
 
@@ -127,7 +127,7 @@ Ab 0.8.0: **«Versionen prüfen» → Zielversion auswählen → «Installieren�
 
 ![Versionsauswahl und Downgrade-Bestätigung](ota-versions.png)
 
-Die öffentliche Auswahl enthält 0.8.0, 0.7.2, 0.7.1 und 0.7.0. Jedes Angebot wird einzeln kryptografisch geprüft. Fehlende oder ungültige Signaturen sowie falsche Boards/Layouts werden abgelehnt. WLAN, Panel- und OTA-Konfiguration bleiben gespeichert. Ältere Versionen können allerdings neuere Funktionen nicht darstellen. Nach einem Downgrade auf 0.7.x führt dessen «Update prüfen» über das weiterhin vorhandene neueste Angebot zurück auf 0.8.0.
+Die öffentliche Auswahl enthält 0.8.1, 0.8.0, 0.7.2, 0.7.1 und 0.7.0. Jedes Angebot wird einzeln kryptografisch geprüft. Fehlende oder ungültige Signaturen sowie falsche Boards/Layouts werden abgelehnt. WLAN, Panel- und OTA-Konfiguration bleiben gespeichert. Ältere Versionen können allerdings neuere Funktionen nicht darstellen. Nach einem Downgrade auf 0.7.x führt dessen «Update prüfen» über das weiterhin vorhandene neueste Angebot zurück auf 0.8.0.
 
 Die vorhandene Manifest-URL bleibt gleich. Ab 0.8.0 wird im selben Verzeichnis zuerst `catalog.json` gelesen; nur bei HTTP 404 erfolgt ein Rückgriff auf das Einzelangebot. Der Katalog ist auf acht Versionen und 16 KiB begrenzt. Die Signaturen der einzelnen Angebote schützen Version und Image-Hash; der Katalog selbst ist keine signierte Vollständigkeitsgarantie. Binärdateien müssen unter ihrem SHA256-Namen im selben Verzeichnis liegen.
 
@@ -160,4 +160,8 @@ idf.py build
 
 Die ausgelieferten Images wurden nativ mit ESP-IDF 5.5.0 gebaut. Für öffentliche eigene Builds Compiler-Pfadpräfixe neutralisieren (CMake-Option `PUBLIC_SOURCE_ROOT`) und Dateien vor Veröffentlichung prüfen. Eigene OTA-Forks benötigen einen eigenen privaten Signierschlüssel ausserhalb des Repos und denselben öffentlichen Schlüssel in Firmware und Aggregator; zuerst per USB installieren. Der mitgelieferte öffentliche Schlüssel autorisiert keine selbst signierten Pakete.
 
-Weitere technische Angaben: [BUILD-INFO.json](releases/0.8.0/BUILD-INFO.json), [Lizenzen](LICENSES/).
+Weitere technische Angaben: [BUILD-INFO.json](releases/0.8.1/BUILD-INFO.json), [Lizenzen](LICENSES/).
+
+## Aktive Rubriken ab 0.8.1
+
+Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktive Rubriken mit Fehlern oder unbekannten Daten bleiben sichtbar. Die übrigen Kacheln verteilen sich gleichmässig. Hinweise bleiben erreichbar. Im Demo-Modus sind alle fiktiven Beispielrubriken aktiv. Dafür sind keine neuen Einstellungen und kein Aggregator-Update nötig. 0.8.1 kann über OTA installiert werden; nach Neustart innerhalb von 120 Sekunden bestätigen. Der physische Test dieser Version steht aus.
