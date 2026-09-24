@@ -33,3 +33,7 @@ Dies ist eine lokale Fehlbedienungssperre, keine serverseitige Zugriffskontrolle
 - `PRTG Sensoren/`: Anleitung und Beispiele; keine privaten Inventare.
 
 Alte OTA-Dateien bleiben erhalten, solange veröffentlichte Manifeste oder unterstützte Geräte darauf verweisen. Neue Builds werden niemals über eine bestehende Version geschrieben.
+
+## Freigegebene Bereinigung
+
+Auf ausdrücklichen Betreiberwunsch wurden die öffentlichen Releases vor 0.9.1 samt Download-Paketen und OTA-Angeboten entfernt. Aktuell wird nur 0.9.1 angeboten. Private Archive und Git-Historie bleiben erhalten. Dies ist eine konkrete Ausnahme zur Aufbewahrung, keine allgemeine Löschfreigabe für spätere Releases.

@@ -13,3 +13,5 @@ Current hardware acceptance: the operator confirmed 0.8.1 OTA installation and i
 Published 0.9.0: Wi-Fi scan, manual SetupPRTGDisplay hotspot and optional HTTP WebAdmin. Local builds/tests passed; physical 0.9.0 acceptance remains pending. The operator explicitly approved this publication; future changes still require fresh approval.
 
 Published 0.9.1 with explicit approval: automatic per-device 12-digit initial WebAdmin password when credentials are absent; existing passwords preserved. Local tests passed; physical acceptance pending. Future publications still require approval.
+
+Explicit operator cleanup: only 0.9.1 remains in public release files, GitHub Releases/tags and the OTA catalog. Private archives and Git history remain untouched. Do not restore older offers automatically.

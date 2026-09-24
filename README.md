@@ -81,7 +81,7 @@ Die Manifest-Adresse dieses Repos lautet:
 https://raw.githubusercontent.com/TroRon/PRTGDisplayProject/main/Display/ota/manifest.json
 ```
 
-Das Manifest auf `main` verweist auf Version 0.9.1. Ab 0.8.0 zeigt «Versionen prüfen» einen Katalog mit Update, Downgrade und Neuinstallation. Ältere Firmware erhält weiterhin das neueste Angebot. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
+Manifest und öffentlicher OTA-Katalog bieten aktuell ausschliesslich Version 0.9.1 an. Ältere öffentliche Release-Pakete und Angebote wurden entfernt; ein Downgrade ist darüber derzeit nicht verfügbar. Ab 0.8.0 zeigt «Versionen prüfen» einen Katalog mit Update, Downgrade und Neuinstallation. Ältere Firmware erhält weiterhin das neueste Angebot. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
 
 ## Datenschutz und Zugangsdaten
 

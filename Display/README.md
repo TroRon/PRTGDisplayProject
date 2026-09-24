@@ -122,15 +122,17 @@ Es gibt keinen Schalter zum Abschalten der TLS-Prüfung. Für eigene private Zer
 
 ## 6. OTA-Updates
 
-### Von 0.7.2 auf 0.8.0 und zurück
+### Auf 0.9.1 aktualisieren
 
-Auf 0.7.2 wie bisher «Update prüfen» und die angebotene 0.8.0 installieren. Nach dem Neustart innerhalb von 120 Sekunden «Diese Version behalten» bestätigen. Ein USB-Flash ist dafür nicht erforderlich.
+Im Firmware-Register «Versionen prüfen» beziehungsweise «Update prüfen» antippen und 0.9.1 installieren. Nach Neustart innerhalb von 120 Sekunden «Diese Version behalten» bestätigen.
 
 Ab 0.8.0: **«Versionen prüfen» → Zielversion auswählen → «Installieren» → ausdrücklich bestätigen.** Angezeigt werden installierte und gewählte Version, Paketgrösse und Fortschritt. Die Liste kennzeichnet Update, Downgrade oder Neuinstallation. Eine vorgemerkte Installation kann vor dem zweiten Klick abgebrochen werden; während des Schreibens nicht ausschalten. Nach jedem OTA-Neustart gilt die Boot-Bestätigung erneut.
 
 ![Versionsauswahl und Downgrade-Bestätigung](ota-versions.png)
 
-Die öffentliche Auswahl enthält 0.9.1, 0.9.0, 0.8.1, 0.8.0, 0.7.2, 0.7.1 und 0.7.0. Jedes Angebot wird einzeln kryptografisch geprüft. Fehlende oder ungültige Signaturen sowie falsche Boards/Layouts werden abgelehnt. WLAN, Panel- und OTA-Konfiguration bleiben gespeichert. Ältere Versionen können allerdings neuere Funktionen nicht darstellen. Nach einem Downgrade auf 0.7.x führt dessen «Update prüfen» über das weiterhin vorhandene neueste Angebot zurück auf die aktuell veröffentlichte Version.
+Der öffentliche Katalog enthält derzeit ausschliesslich **0.9.1**. Frühere Release-Pakete und OTA-Angebote wurden auf Wunsch des Projektbetreibers entfernt. Die Versionswahl unterstützt weiterhin Updates und Neuinstallation; ein Downgrade auf eine ältere Version ist über diesen Katalog derzeit nicht verfügbar. WLAN, Panel- und OTA-Konfiguration bleiben gespeichert. Auch ältere installierte Firmware kann das aktuelle Manifest zum Update verwenden.
+
+Die Git-Historie wurde nicht umgeschrieben; historische Dateistände können dort weiterhin vorhanden sein.
 
 Die vorhandene Manifest-URL bleibt gleich. Ab 0.8.0 wird im selben Verzeichnis zuerst `catalog.json` gelesen; nur bei HTTP 404 erfolgt ein Rückgriff auf das Einzelangebot. Der Katalog ist auf acht Versionen und 16 KiB begrenzt. Die Signaturen der einzelnen Angebote schützen Version und Image-Hash; der Katalog selbst ist keine signierte Vollständigkeitsgarantie. Binärdateien müssen unter ihrem SHA256-Namen im selben Verzeichnis liegen.
 
@@ -167,4 +169,4 @@ Weitere technische Angaben: [BUILD-INFO.json](releases/0.9.1/BUILD-INFO.json), [
 
 ## Aktive Rubriken ab 0.8.1
 
-Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktive Rubriken mit Fehlern oder unbekannten Daten bleiben sichtbar. Die übrigen Kacheln verteilen sich gleichmässig. Hinweise bleiben erreichbar. Im Demo-Modus sind alle fiktiven Beispielrubriken aktiv. Dafür sind keine neuen Einstellungen und kein Aggregator-Update nötig. 0.8.1 kann über OTA installiert werden; nach Neustart innerhalb von 120 Sekunden bestätigen. Der Betreiber hat diese Version auf dem realen Display bestätigt.
+Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktive Rubriken mit Fehlern oder unbekannten Daten bleiben sichtbar. Die übrigen Kacheln verteilen sich gleichmässig. Hinweise bleiben erreichbar. Im Demo-Modus sind alle fiktiven Beispielrubriken aktiv. Dafür sind keine neuen Einstellungen und kein Aggregator-Update nötig. Die aktuelle Version 0.9.1 kann über OTA installiert werden; nach Neustart innerhalb von 120 Sekunden bestätigen. Der Betreiber hat diese Version auf dem realen Display bestätigt.
