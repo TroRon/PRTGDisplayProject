@@ -25,6 +25,8 @@ static httpd_handle_t server=nullptr;
 static bool networkReady=false;
 struct Credential {unsigned version=1;unsigned char salt[16]={},digest[32]={};};
 static Credential credential;
+struct Initial { Credential owner; char digits[13]={}; };
+static char initialDigits[13]={};
 static webpolicy::Session session;
 static webpolicy::LoginLimit attempts;
 static void lock(){xSemaphoreTake(guard,portMAX_DELAY);}
@@ -49,20 +51,22 @@ static bool verify(const char* value){ // guard held
  mbedtls_platform_zeroize(digest,sizeof(digest));return ok;
 }
 void status(Status& s){if(!guard){s=Status{};return;}lock();s=state;unlock();}
+void initialPassword(char (&out)[13]){out[0]=0;if(!guard)return;lock();memcpy(out,initialDigits,sizeof(initialDigits));unlock();}
+static bool eraseOptional(nvs_handle_t n,const char* key){auto e=nvs_erase_key(n,key);return e==ESP_OK||e==ESP_ERR_NVS_NOT_FOUND;}
 bool password(const char* value){
  if(!guard||ota::busy()||!webpolicy::validPassword(value))return false;
  Credential next;esp_fill_random(next.salt,sizeof(next.salt));
  if(!hash(value,next,next.digest))return false;
  lock();nvs_handle_t n;bool ok=false;
- if(nvs_open("eagle-web",NVS_READWRITE,&n)==ESP_OK){ok=nvs_set_blob(n,"credential",&next,sizeof(next))==ESP_OK&&nvs_commit(n)==ESP_OK;nvs_close(n);}
- if(ok){credential=next;state.configured=true;session.clear();attempts.success();snprintf(state.message,sizeof(state.message),"Passwort gespeichert. Web-Anmeldung als admin möglich.");}
+ if(nvs_open("eagle-web",NVS_READWRITE,&n)==ESP_OK){ok=nvs_set_blob(n,"credential",&next,sizeof(next))==ESP_OK&&nvs_set_u8(n,"autodone",1)==ESP_OK&&eraseOptional(n,"initial")&&nvs_commit(n)==ESP_OK;nvs_close(n);}
+ if(ok){mbedtls_platform_zeroize(initialDigits,sizeof(initialDigits));credential=next;state.configured=true;session.clear();attempts.success();snprintf(state.message,sizeof(state.message),"Passwort gespeichert. Web-Anmeldung als admin möglich.");}
  unlock();mbedtls_platform_zeroize(&next,sizeof(next));if(ok)live::adminChanged();return ok;
 }
 bool disable(){
  if(!guard||ota::busy())return false;
  lock();nvs_handle_t n;bool ok=false;
- if(nvs_open("eagle-web",NVS_READWRITE,&n)==ESP_OK){auto err=nvs_erase_key(n,"credential");ok=(err==ESP_OK||err==ESP_ERR_NVS_NOT_FOUND)&&nvs_commit(n)==ESP_OK;nvs_close(n);}
- if(ok){state.configured=false;session.clear();mbedtls_platform_zeroize(&credential,sizeof(credential));snprintf(state.message,sizeof(state.message),"Webzugang deaktiviert. Neues Passwort aktiviert ihn wieder.");}
+ if(nvs_open("eagle-web",NVS_READWRITE,&n)==ESP_OK){ok=nvs_set_u8(n,"autodone",1)==ESP_OK&&eraseOptional(n,"initial")&&eraseOptional(n,"credential")&&nvs_commit(n)==ESP_OK;nvs_close(n);}
+ if(ok){mbedtls_platform_zeroize(initialDigits,sizeof(initialDigits));state.configured=false;session.clear();mbedtls_platform_zeroize(&credential,sizeof(credential));snprintf(state.message,sizeof(state.message),"Webzugang deaktiviert. Neues Passwort aktiviert ihn wieder.");}
  unlock();return ok;
 }
 static void randomHex(char* out){unsigned char bytes[32];esp_fill_random(bytes,sizeof(bytes));for(unsigned i=0;i<32;++i)snprintf(out+2*i,3,"%02x",bytes[i]);mbedtls_platform_zeroize(bytes,sizeof(bytes));}
@@ -161,13 +165,40 @@ static esp_err_t action(httpd_req_t* r){
  }
  return reply(r,ok?"200 OK":"409 Conflict",ok?"Übernommen; Status beachten.":"Nicht übernommen. Eingaben/OTA-Status prüfen und gegebenenfalls erneut Versionen laden.");
 }
+// The temporary initial password is stored only until the user changes it.
+// Its owner digest prevents stale display after older firmware changes credentials.
+static bool createInitial(){
+ Initial next;
+ for(unsigned i=0;i<12;){unsigned char b;esp_fill_random(&b,1);if(b<250)next.digits[i++]=char('0'+b%10);}
+ esp_fill_random(next.owner.salt,sizeof(next.owner.salt));
+ bool ok=hash(next.digits,next.owner,next.owner.digest);nvs_handle_t n;
+ if(ok&&nvs_open("eagle-web",NVS_READWRITE,&n)==ESP_OK){
+  // Save recoverable digits first; credential presence is the activation marker.
+  ok=nvs_set_blob(n,"initial",&next,sizeof(next))==ESP_OK&&nvs_set_blob(n,"credential",&next.owner,sizeof(next.owner))==ESP_OK&&nvs_set_u8(n,"autodone",1)==ESP_OK&&nvs_commit(n)==ESP_OK;nvs_close(n);
+ }else ok=false;
+ if(ok){credential=next.owner;memcpy(initialDigits,next.digits,sizeof(initialDigits));state.configured=true;}
+ mbedtls_platform_zeroize(&next,sizeof(next));return ok;
+}
 void begin(bool ready){
- guard=xSemaphoreCreateMutexStatic(&mutexStorage);networkReady=ready;
- nvs_handle_t n;if(nvs_open("eagle-web",NVS_READONLY,&n)==ESP_OK){Credential c;size_t size=sizeof(c);
-  if(nvs_get_blob(n,"credential",&c,&size)==ESP_OK&&size==sizeof(c)&&c.version==1){credential=c;state.configured=true;}
-  mbedtls_platform_zeroize(&c,sizeof(c));nvs_close(n);}
+ guard=xSemaphoreCreateMutexStatic(&mutexStorage);networkReady=ready;lock();
+ nvs_handle_t n;uint8_t done=0;bool missing=false;bool storageOk=false;
+ auto opened=nvs_open("eagle-web",NVS_READONLY,&n);
+ if(opened==ESP_OK){
+  Credential c;size_t size=sizeof(c);auto result=nvs_get_blob(n,"credential",&c,&size);
+  missing=result==ESP_ERR_NVS_NOT_FOUND;
+  if(result==ESP_OK&&size==sizeof(c)&&c.version==1){credential=c;state.configured=true;}
+  auto marker=nvs_get_u8(n,"autodone",&done);storageOk=marker==ESP_OK||marker==ESP_ERR_NVS_NOT_FOUND;
+  Initial initial;size=sizeof(initial);
+  if(state.configured&&nvs_get_blob(n,"initial",&initial,&size)==ESP_OK&&size==sizeof(initial)&&
+     webpolicy::validInitial(initial.digits)&&!memcmp(&initial.owner,&credential,sizeof(credential))&&verify(initial.digits))memcpy(initialDigits,initial.digits,sizeof(initialDigits));
+  mbedtls_platform_zeroize(&initial,sizeof(initial));mbedtls_platform_zeroize(&c,sizeof(c));nvs_close(n);
+ }else if(opened==ESP_ERR_NVS_NOT_FOUND){missing=true;storageOk=true;}
+ if(webpolicy::needsInitial(state.configured,missing,storageOk,done!=0)){
+  if(!createInitial())snprintf(state.message,sizeof(state.message),"Initiales Web-Passwort nicht gespeichert; bitte lokal neu setzen.");
+ }else if(!state.configured)snprintf(state.message,sizeof(state.message),"Webzugang deaktiviert oder Speicherfehler; Passwort lokal setzen.");
  if(state.configured)snprintf(state.message,sizeof(state.message),"WebAdmin eingerichtet. WLAN oder Einrichtungshotspot verbinden.");
- // No default password and no setup endpoint exposed to the network.
+ unlock();
+ // Never log credentials or return the initial password through HTTP.
 }
 void tick(){
  if(!guard)return;

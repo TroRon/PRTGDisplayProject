@@ -1,5 +1,19 @@
 # Änderungen
 
+## 0.9.1 – Initiales Zahlenpasswort für WebAdmin
+
+- Bei Neuinstallation und Update ohne bisherigen WebAdmin-Zugang erzeugt das Gerät automatisch ein zufälliges zwölfstelliges Zahlenpasswort. Benutzer: `admin`.
+- Passwort unter **Einstellungen → Webzugang** ablesen; bei verbundenem WLAN startet der Webzugang automatisch unter `http://<Display-IP>`.
+- Initialpasswort bleibt über Neustarts und Updates erhalten. Bereits selbst gesetzte Passwörter werden nicht überschrieben.
+- Passwort im Browser, am Display oder über USB ändern. Danach wird der Initialwert aus der Anzeige und seinem zusätzlichen NVS-Eintrag entfernt; das eigene Passwort bleibt nur als Hash gespeichert.
+- Ab 0.9.1 bleibt eine ausdrückliche Deaktivierung auch nach Neustarts erhalten. Bei einem Update von 0.9.0 wird jeder fehlende Zugang eingerichtet, auch wenn WebAdmin dort früher deaktiviert wurde.
+
+**Update:** Firmware → Versionen prüfen → 0.9.1 installieren → nach Neustart innerhalb von **120 Sekunden «Diese Version behalten»** bestätigen. Danach das Passwort unter Webzugang ablesen und im Browser anmelden. WLAN, Panel-Token, Partitionslayout und Pinout bleiben unverändert. Kein Aggregator-Update nötig.
+
+**Validierung:** Hardware-Build (ESP-IDF 5.5.0), beide PlatformIO-Profile, Modell-/LVGL-/Einstellungstests und 17 USB-/Flash-Tests bestanden. Signaturen, Hashes und Paketinhalt geprüft. Physischer Test von Initialpasswort, Persistenz, Web-Anmeldung und OTA/Rollback steht aus. Bestehende Releases bleiben unverändert.
+
+[Einrichtung und technische Grenzen](Display/SETUP.md). HTTP nur im vertrauenswürdigen lokalen Netz verwenden. Der Initialwert liegt bis zur Passwortänderung auch lesbar im lokalen unverschlüsselten NVS, damit er nach einem Neustart am Display ablesbar bleibt. Keine Zugangsdaten sind in den Release-BINs enthalten.
+
 ## 0.9.0 – WLAN, Einrichtungshotspot und WebAdmin
 
 - WLAN-Netzwerke suchen und antippen; anschliessend das verdeckte Passwort eingeben. WLAN kann auch vor dem Panel-Token eingerichtet werden.

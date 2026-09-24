@@ -230,7 +230,11 @@ void settingsTick() {
     live::Status value;live::status(value);
     if(activeTab==5&&!*lv_textarea_get_text(webPassword)){
         webadmin::Status web;webadmin::status(web);
-        lv_label_set_text_fmt(webNotice,"%s\n%s%s%s",web.message,web.running&&value.wifi?"Browser: http://":"",web.running&&value.wifi?value.ip:"",web.running&&value.wifi?" · Benutzer admin":"");
+        char initial[13]={};webadmin::initialPassword(initial);char info[128];
+        if(*initial)snprintf(info,sizeof(info),"Initiales Web-Passwort: %s · bitte ändern",initial);else snprintf(info,sizeof(info),"%s",web.message);
+        memset(initial,0,sizeof(initial));
+        lv_label_set_text_fmt(webNotice,"%s\n%s%s%s",info,web.running&&value.wifi?"Browser: http://":"",web.running&&value.wifi?value.ip:"",web.running&&value.wifi?" · Benutzer admin":"");
+        memset(info,0,sizeof(info));
     }
     if(activeTab==5){
         live::Hotspot setup;live::hotspotStatus(setup);
