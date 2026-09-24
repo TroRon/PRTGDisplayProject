@@ -78,6 +78,8 @@ static void makeCard(const char* name,panel::Status status,const char* body,bool
   auto* values=label(card,body,0,0,cardWidth-22);lv_obj_set_style_text_line_space(values,4,0);
   lv_obj_set_style_text_color(values,lv_color_hex(0xBFCFDD),0);
 }
+// Hardware follows the configured order; the historical simulator keeps severity order.
+static bool preserveEntityOrder=false;
 static void renderCards(bool resetScroll) {
   if(!wide&&selected<0)return;
   int scroll=resetScroll?0:lv_obj_get_scroll_y(detailList);lv_obj_clean(detailList);
@@ -97,9 +99,9 @@ static void renderCards(bool resetScroll) {
     }
   } else {
     unsigned count=0;
-    for(unsigned rank=0;rank<4;rank++)for(unsigned i=0;i<shown.entityCount;i++) {
+    for(unsigned rank=0;rank<(preserveEntityOrder?1u:4u);rank++)for(unsigned i=0;i<shown.entityCount;i++) {
       const auto& entity=shown.entities[i];
-      if((selected<0||entity.category==unsigned(selected))&&panel::severityRank(entity.status)==rank) {
+      if((selected<0||entity.category==unsigned(selected))&&(preserveEntityOrder||panel::severityRank(entity.status)==rank)) {
         makeCard(entity.name,entity.status,entity.details);++count;
       }
     }

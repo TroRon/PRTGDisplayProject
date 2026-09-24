@@ -1,0 +1,28 @@
+{
+  "version": "1.0.1",
+  "sequence": 10001,
+  "status": "Local build and regression checks passed; physical acceptance pending",
+  "board": "Waveshare ESP32-S3-Touch-LCD-5B SKU 28151",
+  "display": "1024x600 RGB565",
+  "esp_idf": "5.5.0",
+  "compiler": "Xtensa GCC 14.2.0",
+  "flash": "16 MB Quad/QIO 80 MHz; USB bootloader header DIO",
+  "psram": "8 MB Octal 80 MHz; two RGB framebuffers",
+  "images": "Four separate USB images; NOT a merged/provisioned flash dump",
+  "offsets": {
+    "bootloader.bin": "0x0",
+    "partition-table.bin": "0x8000",
+    "eaglenet-lcd5b.bin": "0x10000",
+    "ota-reset.bin": "0xc10000"
+  },
+  "nvs": "0x9000 size 0x6000; preserved",
+  "ota": "Application only, RSA signature and SHA256",
+  "setup_ssid": "SetupPRTGDisplay",
+  "credentials": "No Wi-Fi password, panel token, admin password or private signing key in package",
+  "source_tag": "v1.0.1",
+  "factory_reset": "Verified full NVS erase 0x9000+0x6000 before services; reserved intent sector 0xc12000+0x1000; partition table unchanged",
+  "demo_delay_seconds": 50,
+  "web_password_min_bytes": 5,
+  "setup_qr": "Local WPA2 Wi-Fi QR, SSID and per-session AP password only",
+  "captive_portal": "AP-bound DNS and HTTP redirects; authenticated WebAdmin; no additional task"
+}

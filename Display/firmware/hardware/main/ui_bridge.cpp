@@ -61,6 +61,7 @@ static void hardwareDemoBanner(){
     lv_obj_set_style_bg_opa(connection,LV_OPA_COVER,0);
 }
 void uiUpdate(const panel::Snapshot& value){
+    preserveEntityOrder=true;
     sharedUiUpdate(value);
     hardwareCategories();
     lv_obj_set_style_bg_opa(connection,LV_OPA_TRANSP,0);
