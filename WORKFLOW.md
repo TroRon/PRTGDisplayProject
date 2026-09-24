@@ -37,3 +37,5 @@ Alte OTA-Dateien bleiben erhalten, solange veröffentlichte Manifeste oder unter
 ## Freigegebene Bereinigung
 
 Auf ausdrücklichen Betreiberwunsch wurden die öffentlichen Releases vor 0.9.1 samt Download-Paketen und OTA-Angeboten entfernt. Aktuell wird nur 0.9.1 angeboten. Private Archive und Git-Historie bleiben erhalten. Dies ist eine konkrete Ausnahme zur Aufbewahrung, keine allgemeine Löschfreigabe für spätere Releases.
+
+Nachfolgend ausdrücklich freigegeben: Release 1.0.0. Der Katalog enthält nun 1.0.0 und 0.9.1; die zuvor entfernten älteren Releases bleiben entfernt.

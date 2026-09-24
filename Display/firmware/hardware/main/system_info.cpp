@@ -26,7 +26,7 @@ void readPanelSystemInfo(PanelSystemInfo& out){
     }
     snprintf(out.hardware,sizeof(out.hardware),
         "Waveshare ESP32-S3-Touch-LCD-5B\nSKU 28151\n\n"
-        "Firmware: 0.9.1\nESP-IDF: %s\nLVGL: 8.4.0\n\n"
+        "Firmware: 1.0.0\nESP-IDF: %s\nLVGL: 8.4.0\n\n"
         "ESP32-S3: Revision %u.%u · %u Kerne\nCPU-Konfiguration: %u MHz\n"
         "Flash erkannt: %u MiB\nPSRAM erkannt: %u MiB\n\n"
         "Display: 1024 × 600 · RGB565\nTouch: GT911 · kapazitiv\n"
@@ -43,7 +43,7 @@ void readPanelSystemInfo(PanelSystemInfo& out){
         "API: %s · PRTG: %s\nLetzte Abfrage: %u ms · Fehlerfolge: %u\nWiederholung: %s · WLAN-Grund: %d\n\n"
         "Speicher frei / grösster Block (KiB)\nIntern: %u / %u\nDMA intern: %u / %u\nPSRAM: %u / %u\n"
         "Intern/DMA überlappen; nicht addieren.\n\n"
-        "Aggregator: %s\nAbfrage: 15 s · Demo-Wartezeit: 30 s\n"
+        "Aggregator: %s\nAbfrage: 15 s · Demo-Wartezeit: 50 s\n"
         "Zugangsdaten: NVS, bleiben bei Updates\nUSB-Einrichtung optional: provision.py",
         seconds/86400,(seconds/3600)%24,(seconds/60)%60,seconds%60,reset,
         state.wifi?"verbunden":"getrennt",signal,state.ip,state.clock?"synchronisiert":"wartet",state.http,state.message,

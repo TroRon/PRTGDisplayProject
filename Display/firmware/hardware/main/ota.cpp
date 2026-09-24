@@ -1,3 +1,4 @@
+#include "reset_policy.h"
 #include "preferences.h"
 #include "ota_catalog.h"
 #include "Arduino.h"
@@ -43,6 +44,8 @@ static void message(const char* s){lock();snprintf(state.message,sizeof(state.me
 void config(Config& c){if(!initialized){c=Config{};return;}lock();c=selected;unlock();}
 void status(Status& s){if(!initialized){s=Status{};return;}lock();s=state;unlock();}
 bool busy(){Status s;status(s);return s.busy;}
+bool reserveReset(){if(!initialized)return false;lock();bool ok=resetpolicy::allowed(state.busy,state.pending);if(ok)state.busy=true;unlock();return ok;}
+void cancelReset(){if(!initialized)return;lock();state.busy=false;unlock();}
 void begin(bool networkReady){
  guard=xSemaphoreCreateMutexStatic(&storage);
  nvs_handle_t n;

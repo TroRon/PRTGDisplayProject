@@ -15,3 +15,5 @@ Published 0.9.0: Wi-Fi scan, manual SetupPRTGDisplay hotspot and optional HTTP W
 Published 0.9.1 with explicit approval: automatic per-device 12-digit initial WebAdmin password when credentials are absent; existing passwords preserved. Local tests passed; physical acceptance pending. Future publications still require approval.
 
 Explicit operator cleanup: only 0.9.1 remains in public release files, GitHub Releases/tags and the OTA catalog. Private archives and Git history remain untouched. Do not restore older offers automatically.
+
+Release 1.0.0 explicitly authorized: verified NVS factory reset with local confirmation, Info tab, 50-second demo delay. Keep free flash sector 0xC12000–0xC12FFF reserved for reset intent; partition table unchanged. Local tests passed, physical acceptance pending. Keep 0.9.1 as the prior version; do not restore removed earlier releases.

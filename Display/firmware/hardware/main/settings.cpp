@@ -5,6 +5,8 @@
 #include "live.h"
 #include "system_info.h"
 #include "web_admin.h"
+#include "factory_reset.h"
+#include "reset_policy.h"
 #include <lvgl.h>
 LV_FONT_DECLARE(panel_font_14);
 LV_FONT_DECLARE(panel_font_20);
@@ -16,6 +18,7 @@ static live::Scan displayedScan;
 static unsigned activeTab=0;
 static lv_obj_t *otaSource,*otaUrl,*otaStatus,*otaCheck,*otaInstall,*otaKeep,*otaKeyboard;
 static bool installArmed=false;
+static lv_obj_t *resetButton,*resetDialog=nullptr,*resetConfirm,*resetNotice;
 static lv_obj_t *otaVersions,*otaCancel;
 static unsigned catalogRevision=~0u;
 static void disarm(lv_event_t*){installArmed=false;lv_label_set_text(lv_obj_get_child(otaInstall,0),"Installieren");}
@@ -27,7 +30,7 @@ static lv_obj_t* text(const char* caption,int x,int y,int width) {
 static void close(lv_event_t*) {
     // Remove editable secret copies when leaving this screen.
     lv_textarea_set_text(password,"");lv_textarea_set_text(token,"");lv_textarea_set_text(webPassword,"");lv_textarea_set_text(webRepeat,"");
-    lv_obj_del(screen);screen=nullptr;
+    lv_obj_del(screen);screen=nullptr;resetDialog=nullptr;
 }
 static void focus(lv_event_t* e) {
     auto* target=lv_event_get_target(e);auto* kb=(target==webPassword||target==webRepeat)?webKeyboard:(target==panelOrigin||target==panelName)?panelKeyboard:target==otaUrl?otaKeyboard:keyboard;
@@ -49,6 +52,22 @@ static lv_obj_t* button(const char* caption,int x,int y,int width,lv_event_cb_t 
     if(cb)lv_obj_add_event_cb(obj,cb,LV_EVENT_CLICKED,nullptr);
     return obj;
 }
+static void resetCancel(lv_event_t*){if(resetDialog){lv_obj_del(resetDialog);resetDialog=nullptr;}}
+static void resetAsk(lv_event_t*){
+ ota::Status state;ota::status(state);if(!resetpolicy::allowed(state.busy,state.pending)||resetDialog)return;
+ resetDialog=lv_obj_create(screen);lv_obj_set_pos(resetDialog,0,110);lv_obj_set_size(resetDialog,1024,490);
+ lv_obj_set_style_bg_color(resetDialog,lv_color_hex(0x132538),0);lv_obj_set_style_pad_all(resetDialog,0,0);lv_obj_clear_flag(resetDialog,LV_OBJ_FLAG_SCROLLABLE);
+ lv_obj_set_style_text_color(resetDialog,lv_color_hex(0xE4EDF5),0);lv_obj_t* previous=parent;parent=resetDialog;
+ auto* heading=text("Werksreset: alle Kundendaten löschen?",28,24,960);lv_obj_set_style_text_font(heading,&panel_font_20,0);
+ text("Gelöscht werden WLAN und Passwort, Panel-Token, Aggregator-Adresse, Displayname,\nNTP-/OTA-Einstellungen und WebAdmin-Passwort. Alle lokalen NVS-Daten werden gelöscht.\n\nDie installierte Firmware bleibt erhalten. Danach ist eine neue Einrichtung nötig.\nDas Display erhält ein neues initiales WebAdmin-Passwort.\n\nPRTG, Aggregator und externe Backups werden nicht verändert.\nWährend des Resets die Stromversorgung nicht trennen.",28,82,960);
+ resetNotice=text("Dieser Vorgang kann nicht rückgängig gemacht werden.",28,290,960);
+ button("Abbrechen",28,360,340,resetCancel);
+ resetConfirm=button("Alle Daten löschen & neu starten",394,360,594,[](lv_event_t*){
+  ota::Status status;ota::status(status);if(!resetpolicy::allowed(status.busy,status.pending)){lv_label_set_text(resetNotice,"Reset gesperrt: Update abschliessen und neue Version zuerst bestätigen.");return;}
+  if(!factoryreset::request())lv_label_set_text(resetNotice,"Reset nicht abgeschlossen. Speicher-/OTA-Status prüfen; Gerät neu starten und Status kontrollieren.");
+ });
+ lv_obj_set_style_bg_color(resetConfirm,lv_color_hex(0xB53540),0);parent=previous;
+}
 static ota::Config updateConfig(){
     ota::Config c;c.direct=lv_dropdown_get_selected(otaSource)==1;
     snprintf(c.url,sizeof(c.url),"%s",lv_textarea_get_text(otaUrl));return c;
@@ -63,6 +82,7 @@ static void updateInstall(lv_event_t*){
     if(!ota::install(updateConfig()))lv_label_set_text(otaStatus,"Kanal geändert oder Update nicht bereit. Erneut prüfen.");
 }
 static void selectTab(unsigned index) {
+    resetCancel(nullptr);
     activeTab=index;
     for(unsigned i=0;i<6;++i){
         if(i==index)lv_obj_clear_flag(pages[i],LV_OBJ_FLAG_HIDDEN);else lv_obj_add_flag(pages[i],LV_OBJ_FLAG_HIDDEN);
@@ -104,8 +124,8 @@ void settingsOpen() {
     parent=screen;
     title=text("Einstellungen · WLAN und Live-Daten",24,18,780);lv_obj_set_style_text_font(title,&panel_font_20,0);
     button("Schliessen",852,12,148,close);
-    const char* captions[]={"Verbindung","System-Info","Copyright / Idee","Firmware","Panel","Webzugang"};
-    const unsigned positions[]={0,1,5,2,3,4}; // Copyright stays at the far right.
+    const char* captions[]={"Verbindung","System-Info","Info","Firmware","Panel","Webzugang"};
+    const unsigned positions[]={0,1,5,2,3,4}; // Info stays at the far right.
     for(unsigned i=0;i<6;++i){
         tabs[i]=button(captions[i],24+positions[i]*164,60,156,nullptr);
         lv_obj_add_event_cb(tabs[i],[](lv_event_t* e){selectTab((unsigned)(uintptr_t)lv_event_get_user_data(e));},LV_EVENT_CLICKED,(void*)(uintptr_t)i);
@@ -121,7 +141,7 @@ void settingsOpen() {
     notice=text("Speichern verbindet neu. Schliessen verwirft ungespeicherte Eingaben; Registerwechsel erhält sie.",24,224,976);
     lv_obj_set_height(notice,20);lv_label_set_long_mode(notice,LV_LABEL_LONG_WRAP);
     saveButton=button("Speichern & verbinden",24,246,300,save);
-    text("0.9.0 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
+    text("1.0.0 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
     keyboard=lv_keyboard_create(parent);lv_obj_set_align(keyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(keyboard,0,290);lv_obj_set_size(keyboard,1024,200);
     lv_obj_set_style_text_font(keyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);
     lv_keyboard_set_textarea(keyboard,ssid);
@@ -158,6 +178,8 @@ void settingsOpen() {
     otaInstall=button("Installieren",258,234,250,updateInstall);
     otaKeep=button("Diese Version behalten",522,234,290,[](lv_event_t*){ota::confirm();});
     otaCancel=button("Abbrechen",826,234,174,disarm);
+    resetButton=button("Werksreset",24,300,300,resetAsk);
+    text("Löscht alle lokalen Kundendaten nach Rückfrage",344,312,640);
     otaKeyboard=lv_keyboard_create(parent);lv_obj_set_align(otaKeyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(otaKeyboard,0,290);lv_obj_set_size(otaKeyboard,1024,200);
     lv_obj_set_style_text_font(otaKeyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);lv_keyboard_set_textarea(otaKeyboard,otaUrl);
     lv_obj_add_flag(otaKeyboard,LV_OBJ_FLAG_HIDDEN);
@@ -200,7 +222,7 @@ void settingsOpen() {
 void settingsTick() {
     using namespace settings_impl;
     if(!screen)return;
-    const char* headings[]={"Einstellungen · WLAN und Live-Daten","Einstellungen · System-Informationen","Einstellungen · Copyright und Idee","Einstellungen · Firmware-Update","Einstellungen · Panel","Einstellungen · Webzugang"};
+    const char* headings[]={"Einstellungen · WLAN und Live-Daten","Einstellungen · System-Informationen","Einstellungen · Info","Einstellungen · Firmware-Update","Einstellungen · Panel","Einstellungen · Webzugang"};
     lv_label_set_text(title,hardwareDemoActive()?"Einstellungen · DEMO aktiv · Fiktive Daten":headings[activeTab]);
     if(activeTab==1){
         PanelSystemInfo info;readPanelSystemInfo(info);
@@ -226,6 +248,8 @@ void settingsTick() {
         enabled(otaSource,!update.busy&&!update.pending);enabled(otaUrl,!update.busy&&!update.pending&&lv_dropdown_get_selected(otaSource)==1);
         if(update.pending)lv_obj_clear_flag(otaKeep,LV_OBJ_FLAG_HIDDEN);else lv_obj_add_flag(otaKeep,LV_OBJ_FLAG_HIDDEN);
         enabled(otaKeep,update.ready&&!update.busy);
+        enabled(resetButton,resetpolicy::allowed(update.busy,update.pending));
+        if(resetDialog)enabled(resetConfirm,resetpolicy::allowed(update.busy,update.pending));
     }
     live::Status value;live::status(value);
     if(activeTab==5&&!*lv_textarea_get_text(webPassword)){

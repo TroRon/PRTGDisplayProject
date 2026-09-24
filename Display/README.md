@@ -1,12 +1,12 @@
 # Display einrichten
 
-Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151**, 1024 × 600, 16 MB Flash und 8 MB Octal-PSRAM. Aktuell ist **0.9.1** mit WLAN-Suche, Einrichtungshotspot und WebAdmin. Lokal gebaut und getestet; die physische Abnahme der neuen Funktionen steht noch aus. 0.8.1 ist am realen Gerät bestätigt.
+Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151**, 1024 × 600, 16 MB Flash und 8 MB Octal-PSRAM. Aktuell ist **1.0.0** mit WLAN-Suche, Einrichtungshotspot und WebAdmin. Lokal gebaut und getestet; die physische Abnahme der neuen Funktionen steht noch aus. 0.8.1 ist am realen Gerät bestätigt.
 
 **[WLAN, SetupPRTGDisplay und WebAdmin einrichten](SETUP.md).** Beim Update zunächst innerhalb von 120 Sekunden «Diese Version behalten» bestätigen, danach im Register Webzugang das automatisch erzeugte zwölfstellige Zahlenpasswort ablesen. Bereits eigene Passwörter bleiben erhalten; Benutzer: `admin`.
 
 ## 1. USB-Paket herunterladen
 
-Verwende [prtg-display-0.9.1.zip](releases/prtg-display-0.9.1.zip) und entpacke es vollständig. Alle folgenden Flash-Befehle laufen im entpackten Ordner. Einzelne Dateien nicht aus verschiedenen Releases mischen.
+Verwende [prtg-display-1.0.0.zip](releases/prtg-display-1.0.0.zip) und entpacke es vollständig. Alle folgenden Flash-Befehle laufen im entpackten Ordner. Einzelne Dateien nicht aus verschiedenen Releases mischen.
 
 Enthalten sind vier getrennte Images, **kein Full-Flash-Abbild**. Das Paket enthält keine WLAN-Zugangsdaten und keine Aggregator-Adresse. Es darf keine Sicherung eines bereits eingerichteten Geräts ersetzen.
 
@@ -40,7 +40,7 @@ python3 -m venv .venv
 
 Falls keine Verbindung entsteht: anderes Datenkabel/USB-Port testen; bei Bedarf BOOT gedrückt halten, RESET kurz drücken, BOOT loslassen und den Port erneut auswählen. Bei Übertragungsfehlern `flash.py --baud 115200` verwenden. Kein `erase_flash` als Routine-Schritt ausführen.
 
-Die genauen Offsets und der manuelle Befehl stehen in [FLASH.md](releases/0.9.1/FLASH.md). Bei einem bestehenden Gerät bleiben NVS-Einstellungen erhalten, sofern es das bisherige Projektlayout verwendet. Die vier Images setzen die OTA-Auswahl zurück und starten die neue Factory-Anwendung. Von Versionen vor 0.6 ist diese USB-Installation für das neue OTA-Partitionslayout erforderlich.
+Die genauen Offsets und der manuelle Befehl stehen in [FLASH.md](releases/1.0.0/FLASH.md). Bei einem bestehenden Gerät bleiben NVS-Einstellungen erhalten, sofern es das bisherige Projektlayout verwendet. Die vier Images setzen die OTA-Auswahl zurück und starten die neue Factory-Anwendung. Von Versionen vor 0.6 ist diese USB-Installation für das neue OTA-Partitionslayout erforderlich.
 
 ## 4. Verbindung und Anzeigename eintragen
 
@@ -108,7 +108,7 @@ Danach etwa 20 Sekunden warten. Bei erfolgreicher Datenabfrage endet die Demo au
 
 Erwartet werden eine IP-Adresse, synchronisierte Zeit, erfolgreicher API-Abruf und aktuelle PRTG-Werte. HTTP 200 allein beweist noch keine erfolgreiche PRTG-Abfrage: Der Aggregator kann erreichbar sein, während seine Datenquelle ausgefallen ist.
 
-Bei vollständigem Quellenausfall erscheint nach 30 Sekunden eine ausdrücklich markierte **DEMO** mit synthetischen Werten. Das Panel prüft die Verbindung im Hintergrund weiter. Sobald echte Daten zurückkehren, endet die Demo. Einzelne echte Alarme werden nicht durch Demo-Werte verdeckt. Demo-Werte sind kein Nachweis einer gesunden Infrastruktur.
+Bei vollständigem Quellenausfall erscheint nach 50 Sekunden eine ausdrücklich markierte **DEMO** mit synthetischen Werten. Das Panel prüft die Verbindung im Hintergrund weiter. Sobald echte Daten zurückkehren, endet die Demo. Einzelne echte Alarme werden nicht durch Demo-Werte verdeckt. Demo-Werte sind kein Nachweis einer gesunden Infrastruktur.
 
 | Symptom | Prüfen |
 |---|---|
@@ -122,15 +122,15 @@ Es gibt keinen Schalter zum Abschalten der TLS-Prüfung. Für eigene private Zer
 
 ## 6. OTA-Updates
 
-### Auf 0.9.1 aktualisieren
+### Auf 1.0.0 aktualisieren
 
-Im Firmware-Register «Versionen prüfen» beziehungsweise «Update prüfen» antippen und 0.9.1 installieren. Nach Neustart innerhalb von 120 Sekunden «Diese Version behalten» bestätigen.
+Im Firmware-Register «Versionen prüfen» beziehungsweise «Update prüfen» antippen und 1.0.0 installieren. Nach Neustart innerhalb von 120 Sekunden «Diese Version behalten» bestätigen.
 
 Ab 0.8.0: **«Versionen prüfen» → Zielversion auswählen → «Installieren» → ausdrücklich bestätigen.** Angezeigt werden installierte und gewählte Version, Paketgrösse und Fortschritt. Die Liste kennzeichnet Update, Downgrade oder Neuinstallation. Eine vorgemerkte Installation kann vor dem zweiten Klick abgebrochen werden; während des Schreibens nicht ausschalten. Nach jedem OTA-Neustart gilt die Boot-Bestätigung erneut.
 
 ![Versionsauswahl und Downgrade-Bestätigung](ota-versions.png)
 
-Der öffentliche Katalog enthält derzeit ausschliesslich **0.9.1**. Frühere Release-Pakete und OTA-Angebote wurden auf Wunsch des Projektbetreibers entfernt. Die Versionswahl unterstützt weiterhin Updates und Neuinstallation; ein Downgrade auf eine ältere Version ist über diesen Katalog derzeit nicht verfügbar. WLAN, Panel- und OTA-Konfiguration bleiben gespeichert. Auch ältere installierte Firmware kann das aktuelle Manifest zum Update verwenden.
+Der öffentliche Katalog enthält derzeit **1.0.0 und 0.9.1**. Frühere Release-Pakete und OTA-Angebote wurden auf Wunsch des Projektbetreibers entfernt. Die Versionswahl unterstützt weiterhin Updates und Neuinstallation; ein Downgrade von 1.0.0 auf 0.9.1 ist verfügbar. WLAN, Panel- und OTA-Konfiguration bleiben gespeichert. Auch ältere installierte Firmware kann das aktuelle Manifest zum Update verwenden.
 
 Die Git-Historie wurde nicht umgeschrieben; historische Dateistände können dort weiterhin vorhanden sein.
 
@@ -165,8 +165,12 @@ idf.py build
 
 Die ausgelieferten Images wurden nativ mit ESP-IDF 5.5.0 gebaut. Für öffentliche eigene Builds Compiler-Pfadpräfixe neutralisieren (CMake-Option `PUBLIC_SOURCE_ROOT`) und Dateien vor Veröffentlichung prüfen. Eigene OTA-Forks benötigen einen eigenen privaten Signierschlüssel ausserhalb des Repos und denselben öffentlichen Schlüssel in Firmware und Aggregator; zuerst per USB installieren. Der mitgelieferte öffentliche Schlüssel autorisiert keine selbst signierten Pakete.
 
-Weitere technische Angaben: [BUILD-INFO.json](releases/0.9.1/BUILD-INFO.json), [Lizenzen](LICENSES/).
+Weitere technische Angaben: [BUILD-INFO.json](releases/1.0.0/BUILD-INFO.json), [Lizenzen](LICENSES/).
 
 ## Aktive Rubriken ab 0.8.1
 
-Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktive Rubriken mit Fehlern oder unbekannten Daten bleiben sichtbar. Die übrigen Kacheln verteilen sich gleichmässig. Hinweise bleiben erreichbar. Im Demo-Modus sind alle fiktiven Beispielrubriken aktiv. Dafür sind keine neuen Einstellungen und kein Aggregator-Update nötig. Die aktuelle Version 0.9.1 kann über OTA installiert werden; nach Neustart innerhalb von 120 Sekunden bestätigen. Der Betreiber hat diese Version auf dem realen Display bestätigt.
+Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktive Rubriken mit Fehlern oder unbekannten Daten bleiben sichtbar. Die übrigen Kacheln verteilen sich gleichmässig. Hinweise bleiben erreichbar. Im Demo-Modus sind alle fiktiven Beispielrubriken aktiv. Dafür sind keine neuen Einstellungen und kein Aggregator-Update nötig. Die aktuelle Version 1.0.0 kann über OTA installiert werden; nach Neustart innerhalb von 120 Sekunden bestätigen. Der Betreiber hat diese Version auf dem realen Display bestätigt.
+
+## Werksreset und Info ab 1.0.0
+
+Unter **Firmware → Werksreset** erscheint vor dem Löschen eine ausdrückliche Rückfrage. Nach Bestätigung werden alle lokalen Kundeneinstellungen vollständig gelöscht und geprüft; Firmware und externe Systeme bleiben erhalten. Ein Update allein löst keinen Reset aus. Danach neu einrichten und das neue Zahlenpasswort unter Webzugang ablesen. Details und Testgrenzen: [Werksreset](SETUP.md#werksreset-und-weitergabe-ab-100). Das Register **Info** ersetzt Copyright / Idee und bleibt ganz rechts.

@@ -5,7 +5,7 @@
 #include <new>
 
 namespace presentation {
-constexpr uint32_t DemoDelayMs=30000;
+constexpr uint32_t DemoDelayMs=50000;
 class Controller {
     bool waiting=false,active=false;
     uint32_t since=0;

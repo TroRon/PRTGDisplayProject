@@ -1,4 +1,5 @@
 #include "ota.h"
+#include "factory_reset.h"
 #include "web_admin.h"
 #include "esp_task_wdt.h"
 #include "Arduino.h"
@@ -43,7 +44,8 @@ void boardTouch(int16_t &x,int16_t &y,bool &pressed) {
     // Do not log keyboard touch coordinates: they can reveal entered secrets.
 }
 extern "C" void app_main() {
-    ESP_LOGI(TAG,"0.9.0 | Waveshare ESP32-S3-Touch-LCD-5B SKU 28151 | LIVE + LABELLED OFFLINE DEMO");
+    if(!factoryreset::resume()){ESP_LOGE(TAG,"Reset/storage check failed; startup stopped. Power cycle or USB recovery required.");return;}
+    ESP_LOGI(TAG,"1.0.0 | Waveshare ESP32-S3-Touch-LCD-5B SKU 28151 | LIVE + LABELLED OFFLINE DEMO");
     ESP_LOGI(TAG,"IDF %s; reset=%d; RGB 1024x600; flash QIO; PSRAM OPI 80 MHz",esp_get_idf_version(),esp_reset_reason());
     uint32_t flashBytes=0;ESP_ERROR_CHECK(esp_flash_get_size(nullptr,&flashBytes));
     if(flashBytes!=16*1024*1024 || !esp_psram_is_initialized() || esp_psram_get_size()!=8*1024*1024){
@@ -86,7 +88,7 @@ extern "C" void app_main() {
     ESP_ERROR_CHECK(esp_lv_adapter_lock(-1));
     uiBegin(nullptr);
     hardwareSettingsAttach();
-    state.fail("Verbindung wird vorbereitet; Demo nach 30 Sekunden ohne Daten");uiUpdate(state.value);
+    state.fail("Verbindung wird vorbereitet; Demo nach 50 Sekunden ohne Daten");uiUpdate(state.value);
     esp_lv_adapter_unlock();
     ESP_ERROR_CHECK(waveshare_rgb_lcd_backlight_on());
     logMemory("after_ui");

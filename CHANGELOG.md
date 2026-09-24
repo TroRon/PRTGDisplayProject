@@ -1,5 +1,20 @@
 # Änderungen
 
+## 1.0.0 – Werksreset, Info und längere Demo-Wartezeit
+
+- **Firmware → Werksreset** mit separater Rückfrage, deutlich benanntem Löschknopf und Abbrechen. Nur direkt am Display; während OTA oder offener Boot-Bestätigung gesperrt.
+- Vollständige Löschung und Rückleseprüfung des lokalen NVS-Speichers vor Start der Dienste: WLAN, Panel-Token, Aggregator-Adresse, Displayname, NTP-/OTA-Konfiguration und WebAdmin-Zugang. Firmware bleibt installiert. Anschliessend neue Einrichtung und neues initiales Zahlenpasswort.
+- Persistenter Reset-Auftrag zur Wiederaufnahme einer unterbrochenen Löschung. Fehler werden nicht als Erfolg ausgegeben. Externe Systeme und Backups bleiben unverändert.
+- Das rechte Register **Copyright / Idee** heisst jetzt **Info**; Inhalt und Lizenzhinweise bleiben erhalten.
+- Automatischer Demo-Fallback erst nach **50 Sekunden** vollständigem Ausfall statt 30 Sekunden. Echte Teilfehler bleiben Live; bei gültigen Daten endet die Demo sofort.
+- Versionsangaben im Startlog und in den Einstellungen auf 1.0.0 vereinheitlicht.
+
+**Update:** Firmware → Versionen prüfen → 1.0.0 installieren → nach Neustart innerhalb von **120 Sekunden «Diese Version behalten»** bestätigen. Ein Werksreset ist optional und wird durch das Update nicht ausgelöst. Einstellungen bleiben beim Update erhalten. Kein Aggregator-Update nötig.
+
+**Validierung:** Hardware-Build mit ESP-IDF 5.5.0, beide PlatformIO-Profile, Modell-/LVGL-/Einstellungstests, Reset-Bestätigung/Abbruch/OTA-Sperre, Lösch-/Prüfreihenfolge und Fehlerwiederholung, 50-Sekunden-Grenze/Erholung/Timerüberlauf sowie 17 USB-/Flash-Tests bestanden. UI visuell geprüft. **Physische Reset-, Stromunterbruch- und OTA/Rollback-Abnahme steht aus.** Kein echtes Gerät wurde zurückgesetzt.
+
+**Kompatibilität:** Pinout, Displaypuffer und Partitionstabelle unverändert. Für den Reset-Auftrag bleibt der bislang unzugeordnete Flash-Sektor 0xC12000–0xC12FFF reserviert. Keine Kundendaten in diesem Marker. [Einrichtung, Reset und Grenzen](Display/SETUP.md).
+
 ## 0.9.1 – Initiales Zahlenpasswort für WebAdmin
 
 - Bei Neuinstallation und Update ohne bisherigen WebAdmin-Zugang erzeugt das Gerät automatisch ein zufälliges zwölfstelliges Zahlenpasswort. Benutzer: `admin`.
