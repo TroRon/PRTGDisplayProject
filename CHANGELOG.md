@@ -1,5 +1,18 @@
 # Änderungen
 
+## 1.0.0 Revision 3 – WLAN-QR-Code und Captive Portal
+
+Firmware-Version **1.0.0**, OTA-Sequenz **10000**; Quelltag **v1.0.0-r3**. Ausdrücklich freigegebener Ersatz von R2, keine Änderung bestehender Tags oder privater Archive.
+
+- Grosser lokal erzeugter QR-Code verbindet das Handy mit **SetupPRTGDisplay**. Enthält nur SSID und zufälliges AP-Passwort; kein Panel-Token oder WebAdmin-Passwort.
+- Captive Portal im Setup-WLAN: nach dem Verbinden die WLAN-Anmeldung öffnen. Falls kein Fenster erscheint, **http://192.168.4.1/** im Browser öffnen. Anmeldung als **admin** bleibt erforderlich.
+- Automatisch angezeigte Anleitung mit manuellen Zugangsdaten, Rückweg zu Webzugang und Hotspot-Stopp. Hotspot/Portal enden nach WLAN-Verbindung oder spätestens zehn Minuten.
+- DNS auf das Setup-Interface beschränkt, begrenzte Verarbeitung ohne zusätzliche Task. API-Anmeldung, Host-/Origin- und CSRF-Prüfungen bleiben bestehen. QR nutzt den bestehenden LVGL-PSRAM-Allocator.
+
+**Schon auf 1.0.0?** Direktkanal: **Versionen prüfen → 1.0.0 → Neuinstallation**, anschliessend innert **120 Sekunden bestätigen**. Alternativ das neue USB-Paket verwenden. Einstellungen bleiben erhalten. Aggregatoren können einen anderen Hash derselben Version ablehnen; dann Direktkanal oder USB verwenden.
+
+**Lokal geprüft:** Hardware-Build, beide PlatformIO-Profile, Modell-/LVGL-/Settings-Tests, DNS A/AAAA/EDNS und fehlerhafte Pakete, QR-Lebenszyklus und Dekodierung des tatsächlichen LVGL-Renderings, 18 Python-Tests, Paket-Hashes und Signaturen. **Physische Abnahme mit Display und iPhone/Android steht aus.** Automatisches Öffnen ist geräteabhängig.
+
 ## 1.0.0 Revision 2 – Einfachere Ersteinrichtung
 
 Dieses ausdrücklich freigegebene Ersatzpaket behält **Firmware-Version 1.0.0 und OTA-Sequenz 10000**. Der zugehörige Quellstand trägt den separaten Git-Tag **v1.0.0-r2**; der ursprüngliche Tag wird nicht verschoben.

@@ -81,7 +81,7 @@ Die Manifest-Adresse dieses Repos lautet:
 https://raw.githubusercontent.com/TroRon/PRTGDisplayProject/main/Display/ota/manifest.json
 ```
 
-Das Manifest bietet 1.0.0 Revision 2 an; der öffentliche OTA-Katalog enthält 1.0.0 und 0.9.1. Frühere entfernte Versionen bleiben entfernt. Ab 0.8.0 zeigt «Versionen prüfen» einen Katalog mit Update, Downgrade und Neuinstallation. Ältere Firmware erhält weiterhin das neueste Angebot. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
+Das Manifest bietet 1.0.0 Revision 3 an; der öffentliche OTA-Katalog enthält 1.0.0 und 0.9.1. Frühere entfernte Versionen bleiben entfernt. Ab 0.8.0 zeigt «Versionen prüfen» einen Katalog mit Update, Downgrade und Neuinstallation. Ältere Firmware erhält weiterhin das neueste Angebot. Signatur, Board, Version und Prüfsumme werden vor Aktivierung geprüft. Nach einem OTA-Neustart muss die neue Version innerhalb von 120 Sekunden am Display bestätigt werden; sonst ist ein Rückfall vorgesehen. [Details zu Flashen und OTA](Display/README.md).
 
 ## Datenschutz und Zugangsdaten
 
@@ -91,11 +91,11 @@ Das Display spricht bei Live-Daten mit **deinem Aggregator**; PRTG-Zugangsdaten 
 
 ## Projektstand und Mitwirkung
 
-**Aktuell 1.0.0 Revision 2:** Automatischer Setup-Hotspot und WebAdmin-Passwörter ab fünf Byte. Werksreset mit Rückfrage, Register Info und Demo erst nach 50 Sekunden. WLAN-Auswahl, Einrichtungshotspot **SetupPRTGDisplay** und passwortgeschützter WebAdmin für Einstellungen und OTA. [Einrichtung](Display/SETUP.md) · [Änderungen und Upgrade](CHANGELOG.md) · [USB-Paket](Display/releases/prtg-display-1.0.0.zip).
+**Aktuell 1.0.0 Revision 3:** WLAN-QR-Code und Captive Portal vereinfachen die Ersteinrichtung. Automatischer Setup-Hotspot und WebAdmin-Passwörter ab fünf Byte. Werksreset mit Rückfrage, Register Info und Demo erst nach 50 Sekunden. WLAN-Auswahl, Einrichtungshotspot **SetupPRTGDisplay** und passwortgeschützter WebAdmin für Einstellungen und OTA. [Einrichtung](Display/SETUP.md) · [Änderungen und Upgrade](CHANGELOG.md) · [USB-Paket](Display/releases/prtg-display-1.0.0.zip).
 
 Bei fehlendem WebAdmin-Zugang wird automatisch ein zwölfstelliges Zahlenpasswort erzeugt und unter Webzugang angezeigt. Bestehende eigene Passwörter bleiben erhalten. HTTP ist für das vertrauenswürdige lokale Netz vorgesehen. Alle Zugangsdaten und die Aggregator-Adresse richtet der Benutzer selbst ein.
 
-1.0.0 Revision 2 ist lokal gebaut und getestet; die Abnahme der neuen Funktionen am echten Gerät steht noch aus. 0.8.1 wurde vom Betreiber mit Live-Anzeige, OTA-Installation und ausgeblendeten inaktiven Rubriken bestätigt. Ein gezielter Rollback-Test steht weiterhin aus.
+1.0.0 Revision 3 ist lokal gebaut und getestet; die Abnahme der neuen Funktionen am echten Gerät steht noch aus. 0.8.1 wurde vom Betreiber mit Live-Anzeige, OTA-Installation und ausgeblendeten inaktiven Rubriken bestätigt. Ein gezielter Rollback-Test steht weiterhin aus.
 
 Idee und Projektleitung: **Ronny Troxler**. Entwicklung mit Unterstützung von OpenAI Codex. Technische Grundlagen: Espressif ESP-IDF, Waveshare, LVGL und ArduinoJson. PRTG ist ein Produkt von Paessler; dieses Projekt ist kein offizielles Paessler-Produkt.
 

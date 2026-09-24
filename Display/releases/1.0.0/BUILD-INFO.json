@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "sequence": 10000,
-  "status": "Published replacement explicitly approved; local tests passed; physical R2 acceptance pending",
+  "status": "Publication explicitly approved; local tests passed; physical R3 acceptance pending",
   "board": "Waveshare ESP32-S3-Touch-LCD-5B SKU 28151",
   "display": "1024x600 RGB565",
   "esp_idf": "5.5.0",
@@ -19,10 +19,12 @@
   "ota": "Application only, RSA signature and SHA256",
   "setup_ssid": "SetupPRTGDisplay",
   "credentials": "No Wi-Fi password, panel token, admin password or private signing key in package",
-  "local_revision": "r2",
-  "release_revision": "R2",
-  "source_tag": "v1.0.0-r2",
+  "local_revision": "r3",
+  "release_revision": "R3",
+  "source_tag": "v1.0.0-r3",
   "factory_reset": "Verified full NVS erase 0x9000+0x6000 before services; reserved intent sector 0xc12000+0x1000; partition table unchanged",
   "demo_delay_seconds": 50,
-  "web_password_min_bytes": 5
+  "web_password_min_bytes": 5,
+  "setup_qr": "Local WPA2 Wi-Fi QR, SSID and per-session AP password only",
+  "captive_portal": "AP-bound DNS and HTTP redirects; authenticated WebAdmin; no additional task"
 }

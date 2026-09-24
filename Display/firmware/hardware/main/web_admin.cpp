@@ -1,4 +1,6 @@
 #include "web_admin.h"
+#include "setup_portal.h"
+#include "lwip/sockets.h"
 #include "web_policy.h"
 #include "memory_diagnostics.h"
 #include "live.h"
@@ -103,7 +105,22 @@ static bool string(JsonVariantConst v,char* out,size_t capacity){
  auto s=v.as<JsonString>();if(s.size()>=capacity||s.size()!=strlen(s.c_str()))return false;
  memcpy(out,s.c_str(),s.size()+1);return true;
 }
+static bool portalRequest(httpd_req_t* r){
+ live::Hotspot setup;live::hotspotStatus(setup);bool active=setup.active;memset(setup.password,0,sizeof(setup.password));
+ sockaddr_in local={},peer={};socklen_t a=sizeof(local),b=sizeof(peer);int fd=httpd_req_to_sockfd(r);
+ bool localAp=getsockname(fd,(sockaddr*)&local,&a)==0&&local.sin_family==AF_INET&&local.sin_addr.s_addr==inet_addr("192.168.4.1");
+ bool peerAp=getpeername(fd,(sockaddr*)&peer,&b)==0&&peer.sin_family==AF_INET&&(ntohl(peer.sin_addr.s_addr)&0xffffff00)==0xc0a80400;
+ return setupportal::redirect(active,localAp,peerAp,r->method==HTTP_GET,r->uri);
+}
+static esp_err_t portalRedirect(httpd_req_t* r){
+ headers(r);httpd_resp_set_status(r,"302 Found");httpd_resp_set_hdr(r,"Location","http://192.168.4.1/");return httpd_resp_send(r,"Einrichtung: http://192.168.4.1/",HTTPD_RESP_USE_STRLEN);
+}
+static esp_err_t missing(httpd_req_t* r,httpd_err_code_t){
+ if(portalRequest(r))return portalRedirect(r);
+ return reply(r,"404 Not Found","Nicht gefunden.");
+}
 static esp_err_t root(httpd_req_t* r){
+ if(!allowedHost(r,false)&&portalRequest(r))return portalRedirect(r);
  if(!allowedHost(r,false))return reply(r,"403 Forbidden","Bitte die IP-Adresse des Displays verwenden.");
  headers(r);httpd_resp_set_type(r,!strcmp(r->uri,"/app.js")?"text/javascript; charset=utf-8":"text/html; charset=utf-8");
  return httpd_resp_send(r,!strcmp(r->uri,"/app.js")?script:page,HTTPD_RESP_USE_STRLEN);
@@ -203,6 +220,8 @@ void begin(bool ready){
 void tick(){
  if(!guard)return;
  Status s;status(s);
+ live::Hotspot portal;live::hotspotStatus(portal);bool portalActive=portal.active;memset(portal.password,0,sizeof(portal.password));
+ setupportal::tick(s.configured&&networkReady&&server&&portalActive);
  if(!s.configured){if(server){httpd_stop(server);server=nullptr;lock();state.running=false;unlock();}return;}
  if(!networkReady||server)return;
  live::Status net;live::status(net);live::Hotspot setup;live::hotspotStatus(setup);memset(setup.password,0,sizeof(setup.password));if(!net.wifi&&!setup.active)return;
@@ -217,6 +236,7 @@ void tick(){
    {.uri="/api/status",.method=HTTP_GET,.handler=snapshot,.user_ctx=nullptr},
    {.uri="/api/action",.method=HTTP_POST,.handler=action,.user_ctx=nullptr}};
   for(const auto& route:routes)if((result=httpd_register_uri_handler(server,&route))!=ESP_OK)break;
+  if(result==ESP_OK)result=httpd_register_err_handler(server,HTTPD_404_NOT_FOUND,missing);
   if(result!=ESP_OK){httpd_stop(server);server=nullptr;}
  }
  lock();state.running=result==ESP_OK;snprintf(state.message,sizeof(state.message),state.running?"Webzugang bereit · Benutzer admin":"Webstart fehlgeschlagen; UI bleibt aktiv, neuer Versuch folgt.");unlock();

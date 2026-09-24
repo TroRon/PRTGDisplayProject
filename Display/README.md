@@ -1,6 +1,6 @@
 # Display einrichten
 
-Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151**, 1024 × 600, 16 MB Flash und 8 MB Octal-PSRAM. Aktuell ist **1.0.0 Revision 2** mit WLAN-Suche, Einrichtungshotspot und WebAdmin. Lokal gebaut und getestet; die physische Abnahme der neuen Funktionen steht noch aus. 0.8.1 ist am realen Gerät bestätigt.
+Diese Firmware unterstützt ausschliesslich **Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151**, 1024 × 600, 16 MB Flash und 8 MB Octal-PSRAM. Aktuell ist **1.0.0 Revision 3** mit WLAN-QR-Code, Captive Portal, WLAN-Suche und WebAdmin. Lokal gebaut und getestet; die physische Abnahme der neuen Funktionen steht noch aus. 0.8.1 ist am realen Gerät bestätigt.
 
 **[WLAN, SetupPRTGDisplay und WebAdmin einrichten](SETUP.md).** Beim Update zunächst innerhalb von 120 Sekunden «Diese Version behalten» bestätigen, danach im Register Webzugang das automatisch erzeugte zwölfstellige Zahlenpasswort ablesen. Bereits eigene Passwörter bleiben erhalten; Benutzer: `admin`.
 
@@ -175,6 +175,6 @@ Rubriken mit `enabled: false` werden nach der ersten Antwort ausgeblendet. Aktiv
 
 Unter **Firmware → Werksreset** erscheint vor dem Löschen eine ausdrückliche Rückfrage. Nach Bestätigung werden alle lokalen Kundeneinstellungen vollständig gelöscht und geprüft; Firmware und externe Systeme bleiben erhalten. Ein Update allein löst keinen Reset aus. Danach neu einrichten und das neue Zahlenpasswort unter Webzugang ablesen. Details und Testgrenzen: [Werksreset](SETUP.md#werksreset-und-weitergabe-ab-100). Das Register **Info** ersetzt Copyright / Idee und bleibt ganz rechts.
 
-## 1.0.0 Revision 2 installieren
+## 1.0.0 Revision 3 installieren
 
 Die Firmware-Versionsnummer bleibt 1.0.0. Bei bereits installierter 1.0.0 im Direktkanal **Versionen prüfen → 1.0.0 → Neuinstallation** wählen oder das korrigierte USB-Paket verwenden; nach OTA innerhalb von 120 Sekunden bestätigen. Bei Erstinstallation oder nach Reset startet SetupPRTGDisplay automatisch und öffnet die Zugangsdaten am Display. WebAdmin erlaubt fünfstellige Zahlenpasswörter; WPA2/WLAN weiterhin mindestens acht Zeichen. [Details und Einschränkungen beim Aggregator](SETUP.md#korrekturstand-r2-unter-derselben-versionsnummer).

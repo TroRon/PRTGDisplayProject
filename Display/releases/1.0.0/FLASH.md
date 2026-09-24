@@ -1,6 +1,6 @@
-# Firmware 1.0.0 – Hardware-Release, Revision 2
+# Firmware 1.0.0 – Hardware-Release, Revision 3
 
-Nur Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151. 1024×600, 16 MB Flash, 8 MB Octal-PSRAM. ESP-IDF 5.5.0. Lokal gebaut und geprüft; die physische Abnahme der Revision 2 steht aus. Vier getrennte USB-Images, kein zusammengeführter Full-Flash-Dump.
+Nur Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151. 1024×600, 16 MB Flash, 8 MB Octal-PSRAM. ESP-IDF 5.5.0. Lokal gebaut und geprüft; die physische Abnahme der Revision 3 steht aus. Vier getrennte USB-Images, kein zusammengeführter Full-Flash-Dump.
 
 Paket vollständig entpacken, USB-Datenkabel anschliessen, seriellen Monitor schliessen. Terminal in diesem Ordner:
 
@@ -26,3 +26,5 @@ Verwendete Konfiguration: BUILD-INFO.json, sdkconfig, partitions.csv. Prüfsumme
 **Bereits 1.0.0 installiert?** Im Direktkanal «Versionen prüfen → 1.0.0 → Neuinstallation» verwenden; «kein neueres Update» ist wegen identischer Versionsnummer möglich. Alternativ dieses vollständige USB-Paket verwenden. Nach OTA innerhalb von 120 Sekunden bestätigen. Ein Aggregator mit bereits gespeichertem ursprünglichem 1.0.0-Paket kann den abweichenden Hash derselben Versionsnummer ablehnen; in diesem Fall Direktkanal oder USB nutzen.
 
 Bei fehlender gespeicherter WLAN-Konfiguration startet SetupPRTGDisplay automatisch und öffnet Webzugang. WebAdmin erlaubt fünfstellige Zahlenpasswörter. WLAN-Passwörter benötigen mindestens acht Zeichen. Weitere Details: SETUP.md. Der Sektor 0xC12000–0xC12FFF bleibt für Reset-Aufträge reserviert.
+
+Neu in R3: WLAN-QR-Code am Display und Captive Portal. QR-Code scannen, mit SetupPRTGDisplay verbinden und als admin anmelden. Falls kein Fenster erscheint: http://192.168.4.1/ öffnen. Anleitung: SETUP.md. Physischer Handy-/AP-Test steht aus.

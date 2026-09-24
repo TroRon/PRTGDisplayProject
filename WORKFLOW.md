@@ -43,3 +43,5 @@ Nachfolgend ausdrücklich freigegeben: Release 1.0.0. Der Katalog enthält nun 1
 ## Ausdrücklich freigegebener Paket-Ersatz
 
 Der Betreiber hat den Ersatz von 1.0.0 durch Revision 2 bei unveränderter Firmware-Versionsnummer ausdrücklich genehmigt. Ausnahme für dieses Paket: öffentlicher Ordner/USB-Paket und OTA-Angebot werden ersetzt, der ursprüngliche Stand bleibt privat archiviert. Git-Tag v1.0.0-r2 kennzeichnet die korrigierten Quellen; keine Git-Historie und kein bestehender Tag wird umgeschrieben. Diese Ausnahme gilt nicht automatisch für spätere Veröffentlichungen.
+
+Erneute ausdrückliche Freigabe für **1.0.0 R3**: QR-Code und Captive Portal samt Anleitung, Commit/Push und Ersatz des öffentlichen 1.0.0-Pakets/OTA-Angebots. Separater Quelltag v1.0.0-r3; private R1/R2-Archive und bestehende Tags bleiben erhalten. Keine allgemeine Freigabe für spätere Änderungen.

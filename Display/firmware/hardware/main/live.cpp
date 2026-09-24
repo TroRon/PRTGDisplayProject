@@ -134,6 +134,14 @@ static void setupService(){
             if(result!=ESP_OK&&apNetif){esp_netif_destroy_default_wifi(apNetif);apNetif=nullptr;}
         }
         if(result==ESP_OK){
+            // IDF DHCP DNS option: advertise the AP itself, never the upstream resolver.
+            esp_netif_dhcps_stop(apNetif);
+            esp_netif_dns_info_t dns={};dns.ip.type=ESP_IPADDR_TYPE_V4;dns.ip.u_addr.ip4.addr=ESP_IP4TOADDR(192,168,4,1);
+            uint8_t offer=2;
+            auto dnsResult=esp_netif_set_dns_info(apNetif,ESP_NETIF_DNS_MAIN,&dns);
+            if(dnsResult==ESP_OK)dnsResult=esp_netif_dhcps_option(apNetif,ESP_NETIF_OP_SET,ESP_NETIF_DOMAIN_NAME_SERVER,&offer,sizeof(offer));
+            auto dhcpResult=esp_netif_dhcps_start(apNetif);
+            if(dnsResult!=ESP_OK||dhcpResult!=ESP_OK)ESP_LOGW(Tag,"Setup DNS advertisement unavailable; use manual browser address");
             wifi_config_t config={};snprintf((char*)config.ap.ssid,sizeof(config.ap.ssid),"SetupPRTGDisplay");config.ap.ssid_len=strlen("SetupPRTGDisplay");
             snprintf((char*)config.ap.password,sizeof(config.ap.password),"%s",current.password);config.ap.authmode=WIFI_AUTH_WPA2_PSK;config.ap.max_connection=2;config.ap.channel=1;config.ap.pmf_cfg.capable=true;
             // Configure before starting the AP, never expose a temporary open default AP.

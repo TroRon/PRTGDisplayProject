@@ -2,6 +2,7 @@
 #include "ota.h"
 #include "ota_catalog.h"
 #include "settings.h"
+#include "setup_portal.h"
 #include "live.h"
 #include "system_info.h"
 #include "web_admin.h"
@@ -13,6 +14,8 @@ LV_FONT_DECLARE(panel_font_20);
 namespace settings_impl {
 static lv_obj_t *parent,*pages[6],*tabs[6],*hardwareInfo,*runtimeInfo;
 static lv_obj_t *scanButton,*scanPanel,*scanList,*scanNotice,*webPassword,*webRepeat,*webNotice,*webKeyboard,*hotspotInfo,*hotspotButton;
+static lv_obj_t *setupDialog=nullptr,*setupQr=nullptr;
+static bool setupQrSeen=false;
 static unsigned scanRevision=~0u;
 static live::Scan displayedScan;
 static unsigned activeTab=0;
@@ -27,7 +30,14 @@ static lv_obj_t *screen=nullptr,*keyboard,*ssid,*password,*token,*ntp,*statusLab
 static lv_obj_t* text(const char* caption,int x,int y,int width) {
     auto* obj=lv_label_create(parent);lv_label_set_text(obj,caption);lv_obj_set_pos(obj,x,y);lv_obj_set_width(obj,width);return obj;
 }
+static void setupClose(lv_event_t*) {
+    if(setupDialog){
+        if(setupQr){auto* img=lv_canvas_get_img(setupQr);if(img&&img->data)memset((void*)img->data,0,img->data_size);}
+        lv_obj_del(setupDialog);setupDialog=nullptr;setupQr=nullptr;
+    }
+}
 static void close(lv_event_t*) {
+    setupClose(nullptr);
     // Remove editable secret copies when leaving this screen.
     lv_textarea_set_text(password,"");lv_textarea_set_text(token,"");lv_textarea_set_text(webPassword,"");lv_textarea_set_text(webRepeat,"");
     lv_obj_del(screen);screen=nullptr;resetDialog=nullptr;
@@ -51,6 +61,31 @@ static lv_obj_t* button(const char* caption,int x,int y,int width,lv_event_cb_t 
     auto* label=lv_label_create(obj);lv_label_set_text(label,caption);lv_obj_center(label);
     if(cb)lv_obj_add_event_cb(obj,cb,LV_EVENT_CLICKED,nullptr);
     return obj;
+}
+static void setupShow(lv_event_t*) {
+    live::Hotspot setup;live::hotspotStatus(setup);
+    if(!setup.active||setupDialog){memset(setup.password,0,sizeof(setup.password));return;}
+    char payload[96]={};bool valid=setupportal::wifiPayload(setup.password,payload,sizeof(payload));
+    setupDialog=lv_obj_create(screen);lv_obj_set_pos(setupDialog,0,110);lv_obj_set_size(setupDialog,1024,490);
+    lv_obj_clear_flag(setupDialog,LV_OBJ_FLAG_SCROLLABLE);lv_obj_set_style_pad_all(setupDialog,0,0);
+    lv_obj_set_style_bg_color(setupDialog,lv_color_hex(0x132538),0);lv_obj_set_style_text_color(setupDialog,lv_color_hex(0xE4EDF5),0);
+    auto* previous=parent;parent=setupDialog;
+    auto* heading=text("Mit dem Smartphone einrichten",28,18,968);lv_obj_set_style_text_font(heading,&panel_font_20,0);
+    // 256 pixel QR, surrounded by a 32 pixel white quiet zone (at least four modules).
+    auto* quiet=lv_obj_create(parent);lv_obj_set_pos(quiet,28,68);lv_obj_set_size(quiet,320,320);
+    lv_obj_clear_flag(quiet,LV_OBJ_FLAG_SCROLLABLE);lv_obj_set_style_pad_all(quiet,0,0);lv_obj_set_style_border_width(quiet,0,0);
+    lv_obj_set_style_radius(quiet,0,0);lv_obj_set_style_bg_color(quiet,lv_color_white(),0);lv_obj_set_style_bg_opa(quiet,LV_OPA_COVER,0);
+    setupQr=lv_qrcode_create(quiet,256,lv_color_black(),lv_color_white());lv_obj_center(setupQr);
+    if(!valid||lv_qrcode_update(setupQr,payload,strlen(payload))!=LV_RES_OK){lv_obj_add_flag(quiet,LV_OBJ_FLAG_HIDDEN);text("QR-Code nicht verfügbar.\nWLAN manuell verbinden.",28,130,300);}
+    text("1. QR-Code mit der Handy-Kamera scannen.\n    Mit SetupPRTGDisplay verbinden.\n\n2. Anmeldung im WLAN öffnen.\n    Falls keine Seite erscheint:\n    http://192.168.4.1 im Browser öffnen.\n\n3. Als admin anmelden, WLAN suchen und\n    anschliessend Panel konfigurieren.",382,68,608);
+    char initial[13]={};webadmin::initialPassword(initial);
+    auto* credentials=text("",382,258,608);
+    lv_label_set_text_fmt(credentials,"WLAN: SetupPRTGDisplay\nWLAN-Passwort: %s\n\n%s%s",setup.password,*initial?"WebAdmin-Passwort: ":setup.initialAdmin?"WebAdmin-Passwort: ":"Dein gespeichertes WebAdmin-Passwort verwenden.",*initial?initial:setup.initialAdmin?setup.password:"");
+    memset(initial,0,sizeof(initial));
+    text("Ohne Internet verbunden bleiben. Hotspot: maximal 10 Minuten; endet bei WLAN-Verbindung.",28,397,968);
+    button("Zurück zu Webzugang",28,430,440,setupClose);
+    button("Hotspot stoppen",490,430,506,[](lv_event_t*){live::hotspotStop();setupClose(nullptr);});
+    parent=previous;memset(payload,0,sizeof(payload));memset(setup.password,0,sizeof(setup.password));
 }
 static void resetCancel(lv_event_t*){if(resetDialog){lv_obj_del(resetDialog);resetDialog=nullptr;}}
 static void resetAsk(lv_event_t*){
@@ -82,7 +117,7 @@ static void updateInstall(lv_event_t*){
     if(!ota::install(updateConfig()))lv_label_set_text(otaStatus,"Kanal geändert oder Update nicht bereit. Erneut prüfen.");
 }
 static void selectTab(unsigned index) {
-    resetCancel(nullptr);
+    resetCancel(nullptr);setupClose(nullptr);
     activeTab=index;
     for(unsigned i=0;i<6;++i){
         if(i==index)lv_obj_clear_flag(pages[i],LV_OBJ_FLAG_HIDDEN);else lv_obj_add_flag(pages[i],LV_OBJ_FLAG_HIDDEN);
@@ -213,7 +248,8 @@ void settingsOpen() {
     hotspotButton=button("Hotspot starten",264,234,210,[](lv_event_t*){if(!live::hotspotStart())lv_label_set_text(hotspotInfo,"Hotspot nicht gestartet: nur ohne WLAN-Verbindung und ohne laufendes OTA möglich.");});
     button("Hotspot stoppen",484,234,210,[](lv_event_t*){live::hotspotStop();});
     button("Web deaktivieren",704,234,296,[](lv_event_t*){if(webadmin::disable()){live::hotspotStop();lv_label_set_text(webNotice,"Webzugang deaktiviert. Passwort neu setzen zum Aktivieren.");}});
-    webKeyboard=lv_keyboard_create(parent);lv_obj_set_align(webKeyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(webKeyboard,0,290);lv_obj_set_size(webKeyboard,1024,200);
+    button("WLAN-QR-Code anzeigen",24,292,450,setupShow);
+      webKeyboard=lv_keyboard_create(parent);lv_obj_set_align(webKeyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(webKeyboard,0,290);lv_obj_set_size(webKeyboard,1024,200);
     lv_obj_set_style_text_font(webKeyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);lv_keyboard_set_textarea(webKeyboard,webPassword);lv_obj_add_flag(webKeyboard,LV_OBJ_FLAG_HIDDEN);
     installArmed=false;
     selectTab(0);
@@ -222,6 +258,9 @@ void settingsOpen() {
 void settingsTick() {
     using namespace settings_impl;
     if(!screen)return;
+    live::Hotspot qrState;live::hotspotStatus(qrState);bool qrActive=qrState.active;memset(qrState.password,0,sizeof(qrState.password));
+    if(!qrActive){setupClose(nullptr);setupQrSeen=false;}
+    if(qrActive&&activeTab==5&&!setupQrSeen){setupQrSeen=true;setupShow(nullptr);}
     const char* headings[]={"Einstellungen · WLAN und Live-Daten","Einstellungen · System-Informationen","Einstellungen · Info","Einstellungen · Firmware-Update","Einstellungen · Panel","Einstellungen · Webzugang"};
     lv_label_set_text(title,hardwareDemoActive()?"Einstellungen · DEMO aktiv · Fiktive Daten":headings[activeTab]);
     if(activeTab==1){

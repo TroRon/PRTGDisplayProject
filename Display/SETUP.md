@@ -112,3 +112,24 @@ Der automatische Demo-Modus beginnt erst nach **50 Sekunden** durchgehend fehlen
 - R2 bleibt Firmware **1.0.0**, OTA-Sequenz 10000. Daher ist es kein nummerisch neueres Update. Mit dem korrigierten Direktkanal muss ein Gerät mit 1.0.0 **Versionen prüfen → 1.0.0 → Neuinstallation** verwenden oder per USB geflasht werden. Prüfsummen unterscheiden die Pakete.
 - Aggregatoren können bereits vorhandene Pakete gleicher Versionsnummer mit anderem Hash ablehnen. Für diese Korrektur Direktkanal/USB verwenden; keine Schutzprüfung oder bestehende Uploads automatisch umgehen. Das ursprüngliche 1.0.0-Paket bleibt privat archiviert.
 - Lokal geprüft: automatische Einrichtungsbedingungen, fehlende Konfiguration vs. WLAN-Ausfall, OTA-Sperre, fünfstellige USB-/Web-Passwörter, bisherige UI-/Reset-/Demo-Tests und Builds. Physischer Test von AP-Start/Passwortwechsel/Reset weiterhin ausstehend.
+
+## Einrichtung per QR-Code und Captive Portal (R3)
+
+Veröffentlichter Stand **1.0.0 R3**; App-Version und OTA-Sequenz bleiben unverändert. Dieses ausdrücklich freigegebene Paket ersetzt R2.
+
+1. Nach Erstinstallation oder Werksreset startet der Setup-Hotspot wie unter R2 automatisch. Bei einem bereits eingerichteten Gerät ohne WLAN lässt er sich unter **Webzugang → Hotspot starten** aktivieren.
+2. Das Display zeigt einen grossen WLAN-QR-Code. Mit der Handy-Kamera scannen und den Beitritt zu **SetupPRTGDisplay** bestätigen. Alternativ SSID und WLAN-Passwort vom Display abtippen.
+3. Die WLAN-Anmeldeseite sollte automatisch erscheinen. Falls das Handy «Kein Internet» meldet, verbunden bleiben und **Anmelden** wählen. Wenn kein Fenster erscheint, ausdrücklich **http://192.168.4.1/** im Browser öffnen. Es gibt keine HTTPS-Umleitung. VPN, privates DNS oder das Verhalten des Handys können die automatische Erkennung verhindern.
+4. Als **admin** mit dem angezeigten initialen oder deinem bereits gespeicherten WebAdmin-Passwort anmelden. Das WLAN-Passwort und das WebAdmin-Passwort sind normalerweise verschieden.
+5. WLAN suchen, Heimnetz auswählen und dessen Passwort speichern. Bei erfolgreicher Verbindung endet der Hotspot. Die neue IP steht am Display; dort im Browser erneut anmelden und unter **Panel** die Aggregator-Adresse und den Displaynamen sowie die weiteren Parameter einrichten.
+6. Der Hotspot endet spätestens nach zehn Minuten oder über **Hotspot stoppen**. QR-Code und Portal verschwinden dann. Den QR-Code später erneut über **WLAN-QR-Code anzeigen** öffnen, solange der Hotspot läuft.
+
+Der QR-Code wird lokal erzeugt und enthält ausschliesslich die feste Setup-SSID und das zufällige WLAN-Passwort dieser Hotspot-Sitzung. Keine externen QR-Dienste, Panel-Tokens oder WebAdmin-Passwörter im QR-Code. Eine kurze Beschriftung erklärt den manuellen Weg. Die übrigen Einstellungen bleiben über **Zurück zu Webzugang** erreichbar.
+
+Technik: lokaler DNS-Dienst an der AP-Adresse, DHCP-DNS-Ankündigung und HTTP-Weiterleitung zur festen AP-Adresse für GET-Aufrufe über das Setup-Interface. Keine Weiterleitung aus dem normalen WLAN, keine API-Authentifizierungs-Ausnahme, kein offener Resolver. DNS läuft begrenzt in der vorhandenen Hauptschleife und stoppt nach Ende des Hotspots. Passwort-/CSRF-/Host-Prüfungen bleiben bestehen. Keine zusätzliche Netzwerk-Task; QR-Puffer nutzt den bestehenden LVGL-PSRAM-Allocator. Ein DNS-Startfehler wird ohne Neustart protokolliert; die manuelle Browseradresse bleibt verfügbar.
+
+Umsetzung orientiert sich am [offiziellen ESP-IDF-Captive-Portal-Beispiel](https://github.com/espressif/esp-idf/tree/v5.5/examples/protocols/http_server/captive_portal) und dem [Wi-Fi-QR-Format von ZXing](https://github.com/zxing/zxing/wiki/Barcode-Contents#wi-fi-network-config-android-ios-11).
+
+Lokal erfolgreich geprüft: Hardware-Build, beide bisherigen PlatformIO-Profile, DNS-Parser einschliesslich EDNS und 100000 fehlerhaften Testpaketen, AP-/HTTP-Weiterleitungsregeln, LVGL-Dialog samt automatischem Öffnen/Schliessen und Dekodierung des tatsächlich gerenderten QR-Codes. Bestehende Modell-/Settings-Tests und 18 Python-Tests ebenfalls erfolgreich. Am Gerät noch erforderlich: QR-Scan mit iPhone/Android, DHCP/DNS und automatische Portalanzeige, Anmeldung, WLAN-Wechsel, manuelles Stoppen und Zehn-Minuten-Ablauf. Automatisches Öffnen ist geräteabhängig und kann ohne physischen Test nicht bestätigt werden.
+
+Für R3 wie bei R2 **Neuinstallation** wählen oder USB verwenden. Vorherige Archive bleiben unverändert; gleiche Versionsnummern mit verschiedenen Prüfsummen können vom Aggregator abgelehnt werden.
