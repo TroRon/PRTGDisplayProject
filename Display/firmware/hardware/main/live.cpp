@@ -45,6 +45,8 @@ static Scan networks;
 static std::atomic<bool> scanRequested{false};
 static Hotspot setup;
 static std::atomic<unsigned> setupCommand{0};
+static bool initialSetup=false;
+bool needsInitialSetup(){Status s;status(s);return initialSetup&&!s.configured;}
 static esp_netif_t* apNetif=nullptr;
 static uint32_t setupAt=0;
 struct PsramJsonAllocator {
@@ -399,9 +401,10 @@ bool begin() {
     };
     nvsReady=nvs_flash_init()==ESP_OK;
     preferences::begin();
-    if(nvsReady){nvs_handle_t handle;if(nvs_open("eagle-live",NVS_READONLY,&handle)==ESP_OK){
+    if(nvsReady){nvs_handle_t handle;auto opened=nvs_open("eagle-live",NVS_READONLY,&handle);initialSetup=opened==ESP_ERR_NVS_NOT_FOUND;if(opened==ESP_OK){
         Config loaded;size_t size=sizeof(loaded);
-        if(nvs_get_blob(handle,"config",&loaded,&size)==ESP_OK&&size==sizeof(loaded)&&validate(loaded)){
+        auto loadedResult=nvs_get_blob(handle,"config",&loaded,&size);initialSetup=loadedResult==ESP_ERR_NVS_NOT_FOUND;
+        if(loadedResult==ESP_OK&&size==sizeof(loaded)&&validate(loaded)){
             if(guard)xSemaphoreTake(guard,portMAX_DELAY);
             current=loaded;currentStatus.configured=true;
             if(guard)xSemaphoreGive(guard);

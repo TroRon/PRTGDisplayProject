@@ -1,6 +1,6 @@
-# Firmware 1.0.0 – Hardware-Release
+# Firmware 1.0.0 – Hardware-Release, Revision 2
 
-Nur Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151. 1024×600, 16 MB Flash, 8 MB Octal-PSRAM. ESP-IDF 5.5.0. Lokal gebaut und geprüft; physische Abnahme von 1.0.0 steht aus. Vier getrennte USB-Images, kein zusammengeführter Full-Flash-Dump.
+Nur Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151. 1024×600, 16 MB Flash, 8 MB Octal-PSRAM. ESP-IDF 5.5.0. Lokal gebaut und geprüft; die physische Abnahme der Revision 2 steht aus. Vier getrennte USB-Images, kein zusammengeführter Full-Flash-Dump.
 
 Paket vollständig entpacken, USB-Datenkabel anschliessen, seriellen Monitor schliessen. Terminal in diesem Ordner:
 
@@ -19,8 +19,10 @@ python -m esptool --chip esp32s3 --port PORT --baud 460800 --before default_rese
 python -m esptool --chip esp32s3 --port PORT --baud 460800 verify_flash 0x0 bootloader.bin 0x8000 partition-table.bin 0x10000 eaglenet-lcd5b.bin 0xc10000 ota-reset.bin
 ```
 
-Kein erase_flash. Die NVS-Einstellungen bei 0x9000 bleiben erhalten; der USB-Flash setzt nur die OTA-Auswahl zurück. Das signierte `ota/eaglenet-1.0.0.eagleota` enthält nur die Anwendung für einen bestehenden OTA-Slot und darf im vorhandenen Aggregator hochgeladen werden. 1.0.0 ist im öffentlichen OTA-Katalog verfügbar. Nach OTA-Neustart innerhalb von 120 Sekunden bestätigen.
+Kein erase_flash. Die NVS-Einstellungen bei 0x9000 bleiben erhalten; der USB-Flash setzt nur die OTA-Auswahl zurück. Das signierte `ota/eaglenet-1.0.0.eagleota` enthält nur die Anwendung für einen bestehenden OTA-Slot und darf im vorhandenen Aggregator hochgeladen werden. Der öffentliche Direktkanal bietet dieses korrigierte Paket an. Nach OTA-Neustart innerhalb von 120 Sekunden bestätigen.
 
-Verwendete Konfiguration: BUILD-INFO.json, sdkconfig, partitions.csv. Prüfsummen: SHA256.txt. Lizenzhinweise: LICENSES/. Keine alten Release-Dateien ersetzen. Nach Installation Display, Touch, Netzwerk und Werksreset mit Testdaten prüfen.
+Verwendete Konfiguration: BUILD-INFO.json, sdkconfig, partitions.csv. Prüfsummen: SHA256.txt. Lizenzhinweise: LICENSES/. Keine alten Release-Dateien ersetzen. Nach Installation Display, Touch, WLAN und Ersteinrichtung am Gerät prüfen.
 
-Werksreset: Einstellungen → Firmware → Werksreset → Rückfrage bestätigen. Normales Flashen behält Kundendaten. Für den Reset-Auftrag ist der unzugeordnete Flash-Sektor 0xC12000–0xC12FFF reserviert; dort keine eigenen Daten ablegen. Details in SETUP.md.
+**Bereits 1.0.0 installiert?** Im Direktkanal «Versionen prüfen → 1.0.0 → Neuinstallation» verwenden; «kein neueres Update» ist wegen identischer Versionsnummer möglich. Alternativ dieses vollständige USB-Paket verwenden. Nach OTA innerhalb von 120 Sekunden bestätigen. Ein Aggregator mit bereits gespeichertem ursprünglichem 1.0.0-Paket kann den abweichenden Hash derselben Versionsnummer ablehnen; in diesem Fall Direktkanal oder USB nutzen.
+
+Bei fehlender gespeicherter WLAN-Konfiguration startet SetupPRTGDisplay automatisch und öffnet Webzugang. WebAdmin erlaubt fünfstellige Zahlenpasswörter. WLAN-Passwörter benötigen mindestens acht Zeichen. Weitere Details: SETUP.md. Der Sektor 0xC12000–0xC12FFF bleibt für Reset-Aufträge reserviert.

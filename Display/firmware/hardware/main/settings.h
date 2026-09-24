@@ -6,3 +6,5 @@ void hardwareSettingsAttach();
 bool hardwareDemoActive();
 
 void settingsShowFirmware();
+
+void settingsShowWebAccess();

@@ -1,5 +1,6 @@
 #include "ota.h"
 #include "factory_reset.h"
+#include "setup_policy.h"
 #include "web_admin.h"
 #include "esp_task_wdt.h"
 #include "Arduino.h"
@@ -115,9 +116,20 @@ extern "C" void app_main() {
     uint32_t lastDemo=0;
     presentation.update(state.value,false,millis());
     ESP_LOGI(TAG,"Display/UI active; network_ready=%d",networkReady);
-    uint32_t lastLog=0,lastSettings=0;
+    uint32_t lastLog=0,lastSettings=0,setupAttemptAt=0;bool setupStarted=false,setupAttempted=false;
     for(;;){
         esp_task_wdt_reset();ota::tick();webadmin::tick();
+        if(!setupStarted){
+            ota::Status update;ota::status(update);webadmin::Status web;webadmin::status(web);
+            if(setuppolicy::automatic(networkReady,live::needsInitialSetup(),web.configured,update.busy,update.pending)&&
+               (!setupAttempted||uint32_t(millis()-setupAttemptAt)>=30000)){
+                setupAttempted=true;setupAttemptAt=millis();
+                live::Hotspot hotspot;live::hotspotStatus(hotspot);
+                bool accepted=hotspot.active||hotspot.pending||live::hotspotStart();
+                memset(hotspot.password,0,sizeof(hotspot.password));
+                if(accepted){setupStarted=true;ESP_ERROR_CHECK(esp_lv_adapter_lock(-1));settingsOpen();settingsShowWebAccess();esp_lv_adapter_unlock();}
+            }
+        }
         ESP_ERROR_CHECK(esp_lv_adapter_lock(-1));
         bool changed=live::read(state.value,sourcesUnavailable);
         // Sample after reading: a freshly queued snapshot can be newer than a pre-read timestamp.

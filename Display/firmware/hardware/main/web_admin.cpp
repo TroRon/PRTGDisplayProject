@@ -161,7 +161,7 @@ static esp_err_t action(httpd_req_t* r){
   char old[64]={},next[64]={};bool valid=doc.size()==3&&string(doc["current"],old,sizeof(old))&&string(doc["password"],next,sizeof(next));
   lock();bool allowed=attempts.allowed(millis());valid=allowed&&valid&&verify(old);if(allowed&&!valid)attempts.failed(millis());unlock();
   ok=valid&&password(next);mbedtls_platform_zeroize(old,sizeof(old));mbedtls_platform_zeroize(next,sizeof(next));
-  return reply(r,ok?"200 OK":"400 Bad Request",ok?"Passwort gespeichert. Bitte erneut anmelden.":"Nicht geändert. Aktuelles Passwort und mindestens 12 Byte prüfen; nach Fehlversuchen warten.");
+  return reply(r,ok?"200 OK":"400 Bad Request",ok?"Passwort gespeichert. Bitte erneut anmelden.":"Nicht geändert. Aktuelles Passwort und mindestens 5 Byte prüfen; nach Fehlversuchen warten.");
  }
  return reply(r,ok?"200 OK":"409 Conflict",ok?"Übernommen; Status beachten.":"Nicht übernommen. Eingaben/OTA-Status prüfen und gegebenenfalls erneut Versionen laden.");
 }

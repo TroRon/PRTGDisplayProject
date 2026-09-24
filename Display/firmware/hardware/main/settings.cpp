@@ -199,7 +199,7 @@ void settingsOpen() {
     panelKeyboard=lv_keyboard_create(parent);lv_obj_set_align(panelKeyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(panelKeyboard,0,290);lv_obj_set_size(panelKeyboard,1024,200);
     lv_obj_set_style_text_font(panelKeyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);lv_keyboard_set_textarea(panelKeyboard,panelOrigin);
     parent=pages[5];lv_obj_clear_flag(parent,LV_OBJ_FLAG_SCROLLABLE);
-    webPassword=field("Neues WebAdmin-Passwort (12-63 UTF-8-Bytes)","",24,0,468,63,true);
+    webPassword=field("Neues WebAdmin-Passwort (5-63 UTF-8-Bytes)","",24,0,468,63,true);
     webRepeat=field("Passwort wiederholen", "",516,0,484,63,true);
     webNotice=text("",24,84,976);lv_obj_set_height(webNotice,50);
     hotspotInfo=text("",24,140,976);lv_obj_set_height(hotspotInfo,68);
@@ -207,7 +207,7 @@ void settingsOpen() {
     button("Passwort speichern",24,234,230,[](lv_event_t*){
         const char* first=lv_textarea_get_text(webPassword);const char* second=lv_textarea_get_text(webRepeat);
         bool ok=!strcmp(first,second)&&webadmin::password(first);
-        lv_label_set_text(webNotice,ok?"Gespeichert. Browser neu anmelden.":"Nicht gespeichert. Gleiche Passwörter mit 12-63 Byte verwenden; während OTA warten.");
+        lv_label_set_text(webNotice,ok?"Gespeichert. Browser neu anmelden.":"Nicht gespeichert. Gleiche Passwörter mit 5-63 Byte verwenden; während OTA warten.");
         if(ok){lv_textarea_set_text(webPassword,"");lv_textarea_set_text(webRepeat,"");}
     });
     hotspotButton=button("Hotspot starten",264,234,210,[](lv_event_t*){if(!live::hotspotStart())lv_label_set_text(hotspotInfo,"Hotspot nicht gestartet: nur ohne WLAN-Verbindung und ohne laufendes OTA möglich.");});
@@ -294,3 +294,5 @@ void settingsTick() {
 
 
 void settingsShowFirmware(){if(settings_impl::screen)settings_impl::selectTab(3);}
+
+void settingsShowWebAccess(){if(settings_impl::screen)settings_impl::selectTab(5);}

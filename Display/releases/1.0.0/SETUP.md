@@ -1,6 +1,6 @@
 # Firmware 1.0.0 – WLAN-Auswahl, Einrichtungshotspot und WebAdmin
 
-**Release 1.0.0.** Als USB-Paket und signiertes OTA-Angebot veröffentlicht. Lokale Tests ersetzen den Test auf dem echten Waveshare LCD-5B nicht. Die bisherigen Releases einschliesslich 0.9.1 bleiben unverändert.
+**1.0.0, Revision 2 (R2).** Freigegebenes Ersatzpaket. Firmware-Version 1.0.0 und OTA-Sequenz 10000 bleiben unverändert; Git-Quellstand und GitHub-Release verwenden zur eindeutigen Zuordnung den Tag `v1.0.0-r2`. Lokale Tests ersetzen den Test auf dem echten Waveshare LCD-5B nicht. Die bisherigen Releases einschliesslich 0.9.1 bleiben unverändert.
 
 ## WLAN direkt am Display auswählen
 
@@ -13,12 +13,12 @@ Es werden bis zu 20 sichtbare Netzwerke mit Signalstärke angezeigt. Doppelte Na
 
 ## Ersteinrichtung ohne USB mit Smartphone oder PC
 
-1. Am noch nicht mit WLAN verbundenen Display: **Einstellungen → Webzugang → Hotspot starten**.
+1. Bei Erstinstallation ohne gespeicherte WLAN-Konfiguration sowie nach einem Werksreset startet **SetupPRTGDisplay automatisch**. Das Display öffnet direkt Webzugang. Später ist **Einstellungen → Webzugang → Hotspot starten** weiterhin möglich.
 2. Mit **`SetupPRTGDisplay`** verbinden. Das zufällig erzeugte WPA2-Passwort steht auf dem Display. Es wird bei jedem Start neu erzeugt und nicht protokolliert.
 3. Im Browser ausdrücklich **`http://192.168.4.1`** öffnen. Der Hotspot hat keinen Internetzugang und kein automatisches Captive Portal. Falls das Smartphone nachfragt, mit diesem WLAN verbunden bleiben.
 4. Benutzer **`admin`**. Das initiale **12-stellige Zahlenpasswort** steht oben im Register Webzugang. Es ist vom WLAN-Passwort des Hotspots unabhängig. Bei einem bereits eingerichteten Gerät das bisherige WebAdmin-Passwort verwenden.
 5. Zuerst gegebenenfalls WebAdmin-Passwort ändern und erneut anmelden. Panelname und Aggregator-Adresse eintragen. Dann WLAN suchen, auswählen, Passwort und optional Panel-Token eingeben und speichern.
-6. Bei erfolgreicher WLAN-Verbindung schaltet sich der Hotspot automatisch ab. Er endet spätestens nach etwa zehn Minuten; auch **Hotspot stoppen** ist möglich. Eine erneute Aktivierung am Display ist möglich, solange keine normale WLAN-Verbindung besteht. Es gibt keinen automatisch startenden Dauer-Hotspot.
+6. Bei erfolgreicher WLAN-Verbindung schaltet sich der Hotspot automatisch ab. Er endet spätestens nach etwa zehn Minuten; auch **Hotspot stoppen** ist möglich. Eine erneute Aktivierung am Display ist möglich, solange keine normale WLAN-Verbindung besteht. Der automatische Start erfolgt einmal pro Start eines unkonfigurierten Geräts. Nach Ablauf oder manuellem Stoppen wird er in diesem Startvorgang nicht automatisch erneut gestartet.
 7. Smartphone/PC wieder mit dem normalen Netz verbinden. Am Display die neue IP-Adresse ablesen und **`http://<Display-IP>`** öffnen. Mit dem gespeicherten WebAdmin-Passwort anmelden. NTP-Zeit und Live-Verbindung kontrollieren.
 
 Während eines WLAN-Wechsels kann die Browserverbindung abbrechen. «Speichern angefordert» bestätigt die Annahme des Auftrags, noch nicht die erfolgreiche WLAN-Verbindung; deren Ergebnis steht am Display und nach Wiederverbindung im Browser.
@@ -29,7 +29,7 @@ Der Hotspot erlaubt höchstens zwei Geräte. Er ist ein lokaler Einrichtungszuga
 
 Ab **0.9.1** erzeugt das Gerät beim ersten Start ohne bestehendes WebAdmin-Passwort automatisch ein zufälliges **12-stelliges Zahlenpasswort**. Das gilt bei Neuinstallation und beim Update von älteren Versionen ohne WebAdmin-Zugang. Im verbundenen WLAN startet der Webzugang automatisch. Unter **Einstellungen → Webzugang** stehen Passwort, Adresse und Benutzer `admin`.
 
-Das Passwort bleibt über Neustarts und weitere Updates gleich. Ein bereits selbst gesetztes Passwort wird niemals durch das initiale Passwort ersetzt. Im Register Webzugang oder im Browser kann der Anwender ein eigenes Passwort mit 12–63 UTF-8-Bytes setzen; danach verschwindet die Anzeige des initialen Passworts. Alternativ per USB ändern. Kein Passwort wird im Log oder in der HTTP-Statusantwort ausgegeben.
+Das Passwort bleibt über Neustarts und weitere Updates gleich. Ein bereits selbst gesetztes Passwort wird niemals durch das initiale Passwort ersetzt. Im Register Webzugang oder im Browser kann der Anwender ein eigenes Passwort mit 5–63 UTF-8-Bytes setzen; danach verschwindet die Anzeige des initialen Passworts. Alternativ per USB ändern. Kein Passwort wird im Log oder in der HTTP-Statusantwort ausgegeben.
 
 Ab 0.9.1 bleibt ein ausdrücklich deaktivierter Webzugang auch nach Neustarts und Updates deaktiviert. Beim ersten Update von 0.9.0 kann ein dort fehlendes Passwort nicht von einer früheren Deaktivierung unterschieden werden: In beiden Fällen wird das initiale Passwort erzeugt. Bei beschädigten oder nicht lesbaren Zugangsdaten wird kein vorhandenes Passwort automatisch überschrieben; lokal neu setzen.
 
@@ -102,3 +102,13 @@ Das bisherige Register Copyright / Idee heisst jetzt **Info** und bleibt ganz re
 ## Demo-Wartezeit ab 1.0.0
 
 Der automatische Demo-Modus beginnt erst nach **50 Sekunden** durchgehend fehlender Verbindung beziehungsweise vollständigem Quellenausfall. WLAN und Zeitsynchronisation erhalten dadurch mehr Zeit beim Start. Bis dahin bleibt der Zustand unbekannt; echte Daten beenden die Demo sofort. Teilfehler und echte Alarme bleiben Live. Die Wartezeit gilt auch bei späteren vollständigen Ausfällen und wird bei Erholung zurückgesetzt.
+
+## Korrekturstand R2 unter derselben Versionsnummer
+
+- WebAdmin erlaubt jetzt Passwörter ab **5 UTF-8-Bytes**, auch reine Zahlenfolgen wie fünf Ziffern. Gilt für Display, Browser und USB; weniger als fünf, mehr als 63 Byte oder Steuerzeichen werden abgelehnt. Bestehende Passwörter bleiben gültig. Das automatisch erzeugte Initialpasswort bleibt zwölfstellig.
+- WLAN und Setup-Hotspot behalten die WPA2-Mindestlänge von acht Zeichen; diese Passwörter sind nicht das WebAdmin-Passwort.
+- Automatischer Hotspot nur bei tatsächlich fehlender gespeicherter WLAN-Konfiguration, nicht bei einem Verbindungsfehler oder beschädigten/nicht lesbaren Daten. Bei fehlendem Netzwerk/WebAdmin-Start kein automatischer Hotspot. Eine offene OTA-Bestätigung wird zuerst abgeschlossen.
+- Der Hotspot läuft höchstens zehn Minuten und endet nach erfolgreicher WLAN-Verbindung. Für die angezeigten Zugangsdaten wird automatisch Webzugang geöffnet. Nach Werksreset ist das Gerät wieder unkonfiguriert.
+- R2 bleibt Firmware **1.0.0**, OTA-Sequenz 10000. Daher ist es kein nummerisch neueres Update. Mit dem korrigierten Direktkanal muss ein Gerät mit 1.0.0 **Versionen prüfen → 1.0.0 → Neuinstallation** verwenden oder per USB geflasht werden. Prüfsummen unterscheiden die Pakete.
+- Aggregatoren können bereits vorhandene Pakete gleicher Versionsnummer mit anderem Hash ablehnen. Für diese Korrektur Direktkanal/USB verwenden; keine Schutzprüfung oder bestehende Uploads automatisch umgehen. Das ursprüngliche 1.0.0-Paket bleibt privat archiviert.
+- Lokal geprüft: automatische Einrichtungsbedingungen, fehlende Konfiguration vs. WLAN-Ausfall, OTA-Sperre, fünfstellige USB-/Web-Passwörter, bisherige UI-/Reset-/Demo-Tests und Builds. Physischer Test von AP-Start/Passwortwechsel/Reset weiterhin ausstehend.

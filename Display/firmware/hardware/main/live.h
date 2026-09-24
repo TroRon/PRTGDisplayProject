@@ -65,6 +65,7 @@ bool scanStart();
 void scanStatus(Scan&);
 struct Hotspot {bool active=false,pending=false,initialAdmin=false;unsigned seconds=0;char password[33]={};char message[112]="Einrichtungshotspot ausgeschaltet";};
 bool hotspotStart();
+bool needsInitialSetup();
 void hotspotStop();
 void hotspotStatus(Hotspot&);
 void adminChanged();

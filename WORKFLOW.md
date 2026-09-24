@@ -39,3 +39,7 @@ Alte OTA-Dateien bleiben erhalten, solange veröffentlichte Manifeste oder unter
 Auf ausdrücklichen Betreiberwunsch wurden die öffentlichen Releases vor 0.9.1 samt Download-Paketen und OTA-Angeboten entfernt. Aktuell wird nur 0.9.1 angeboten. Private Archive und Git-Historie bleiben erhalten. Dies ist eine konkrete Ausnahme zur Aufbewahrung, keine allgemeine Löschfreigabe für spätere Releases.
 
 Nachfolgend ausdrücklich freigegeben: Release 1.0.0. Der Katalog enthält nun 1.0.0 und 0.9.1; die zuvor entfernten älteren Releases bleiben entfernt.
+
+## Ausdrücklich freigegebener Paket-Ersatz
+
+Der Betreiber hat den Ersatz von 1.0.0 durch Revision 2 bei unveränderter Firmware-Versionsnummer ausdrücklich genehmigt. Ausnahme für dieses Paket: öffentlicher Ordner/USB-Paket und OTA-Angebot werden ersetzt, der ursprüngliche Stand bleibt privat archiviert. Git-Tag v1.0.0-r2 kennzeichnet die korrigierten Quellen; keine Git-Historie und kein bestehender Tag wird umgeschrieben. Diese Ausnahme gilt nicht automatisch für spätere Veröffentlichungen.

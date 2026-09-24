@@ -7,7 +7,7 @@ inline bool needsInitial(bool configured,bool missing,bool storageOk,bool done){
 inline bool validInitial(const char (&p)[13]){if(p[12])return false;for(unsigned i=0;i<12;++i)if(p[i]<'0'||p[i]>'9')return false;return true;}
 inline bool validPassword(const char* p){
  if(!p)return false;
- const size_t n=strlen(p);if(n<12||n>63)return false;
+ const size_t n=strlen(p);if(n<5||n>63)return false;
  for(size_t i=0;i<n;++i)if((unsigned char)p[i]<32||(unsigned char)p[i]==127)return false;
  return true;
 }

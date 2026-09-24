@@ -17,3 +17,5 @@ Published 0.9.1 with explicit approval: automatic per-device 12-digit initial We
 Explicit operator cleanup: only 0.9.1 remains in public release files, GitHub Releases/tags and the OTA catalog. Private archives and Git history remain untouched. Do not restore older offers automatically.
 
 Release 1.0.0 explicitly authorized: verified NVS factory reset with local confirmation, Info tab, 50-second demo delay. Keep free flash sector 0xC12000–0xC12FFF reserved for reset intent; partition table unchanged. Local tests passed, physical acceptance pending. Keep 0.9.1 as the prior version; do not restore removed earlier releases.
+
+Explicit replacement approval for 1.0.0 R2: automatic setup hotspot and WebAdmin passwords of at least five bytes. Firmware version/sequence unchanged. Public release files replaced once; original retained privately. Source tag v1.0.0-r2 distinguishes this revision without rewriting v1.0.0. QR/captive portal not included. New future changes still require approval.

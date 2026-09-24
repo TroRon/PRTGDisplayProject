@@ -9,9 +9,9 @@ import re
 DEFAULT_MANIFEST = 'https://raw.githubusercontent.com/TroRon/PRTGDisplayProject/main/Display/ota/manifest.json'
 
 def web_settings():
-    password = getpass.getpass('WebAdmin-Passwort für admin (12-63 UTF-8-Bytes, verdeckt): ')
+    password = getpass.getpass('WebAdmin-Passwort für admin (5-63 UTF-8-Bytes, verdeckt): ')
     repeat = getpass.getpass('WebAdmin-Passwort wiederholen: ')
-    if password != repeat or not (12 <= len(password.encode()) <= 63) or any(ord(c) < 32 or ord(c) == 127 for c in password):
+    if password != repeat or not (5 <= len(password.encode()) <= 63) or any(ord(c) < 32 or ord(c) == 127 for c in password):
         raise ValueError('Ungültiges WebAdmin-Passwort; nichts übertragen.')
     return dict(password=password)
 

@@ -1,5 +1,18 @@
 # Änderungen
 
+## 1.0.0 Revision 2 – Einfachere Ersteinrichtung
+
+Dieses ausdrücklich freigegebene Ersatzpaket behält **Firmware-Version 1.0.0 und OTA-Sequenz 10000**. Der zugehörige Quellstand trägt den separaten Git-Tag **v1.0.0-r2**; der ursprüngliche Tag wird nicht verschoben.
+
+- **SetupPRTGDisplay startet automatisch**, wenn noch keine WLAN-Konfiguration gespeichert ist, insbesondere nach einem Werksreset. Webzugang mit den Zugangsdaten wird direkt geöffnet.
+- Kein automatischer Hotspot bei bloss vorübergehendem WLAN-Ausfall, beschädigter/nicht lesbarer Konfiguration oder fehlendem WebAdmin-Zugang. Während offener OTA-Bestätigung wird gewartet. Abschaltung nach Verbindung beziehungsweise zehn Minuten bleibt erhalten.
+- **WebAdmin-Passwörter ab fünf UTF-8-Bytes**, einschliesslich fünfstelliger Zahlenfolgen, werden am Display, im Browser und über USB akzeptiert. WLAN/WPA2 weiterhin mindestens acht Zeichen. Das automatisch erzeugte Initialpasswort bleibt zwölfstellig.
+- Werksreset, Register Info und Demo-Wartezeit von 50 Sekunden bleiben enthalten. QR-Code und Captive Portal sind noch nicht enthalten.
+
+**Schon auf 1.0.0?** Im öffentlichen Direktkanal **Versionen prüfen → 1.0.0 → Neuinstallation** wählen; danach innerhalb von **120 Sekunden** bestätigen. Die Firmware erkennt wegen unveränderter Versionsnummer kein höheres Update. Alternativ das neue USB-Paket vollständig entpacken und flashen. Bestehende Einstellungen bleiben erhalten. Ein Aggregator mit bereits archiviertem ursprünglichem 1.0.0 kann das Ersatzpaket wegen abweichendem Hash ablehnen; hierfür Direktkanal oder USB verwenden.
+
+**Validierung:** Hardware-Build, beide PlatformIO-Profile, Modell-/LVGL-/Einstellungstests, automatische Einrichtungsbedingungen, WebAdmin-Validierung und 18 USB-/Flash-Tests bestanden. Browserformular mit fünfstelliger PIN und Desktop-/Mobilbedienung an synthetischen Daten geprüft. Signaturen und Paket-Hashes geprüft. **Physischer Test von R2 steht aus.** Das ursprüngliche Paket bleibt privat archiviert.
+
 ## 1.0.0 – Werksreset, Info und längere Demo-Wartezeit
 
 - **Firmware → Werksreset** mit separater Rückfrage, deutlich benanntem Löschknopf und Abbrechen. Nur direkt am Display; während OTA oder offener Boot-Bestätigung gesperrt.
