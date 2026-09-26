@@ -11,6 +11,8 @@ static lv_obj_t *section, *pageTitle, *backButton, *detailList, *scrollHint, *de
 static int selected=-1, width=320, height=240;
 static bool wide=false, dimmed=false;
 static bool hardwareIdleControl=false;
+static const char* (*emptyEntityMessage)()=nullptr;
+static bool (*entityFilter)(const panel::Entity&)=nullptr;
 static void (*decorateEntity)(lv_obj_t*,const panel::Entity&)=nullptr;
 static uint32_t activity=0, lastClock=0;
 static void (*advance)()=nullptr;
@@ -104,14 +106,14 @@ static void renderCards(bool resetScroll) {
     unsigned count=0;
     for(unsigned rank=0;rank<(preserveEntityOrder?1u:4u);rank++)for(unsigned i=0;i<shown.entityCount;i++) {
       const auto& entity=shown.entities[i];
-      if((selected<0||entity.category==unsigned(selected))&&(preserveEntityOrder||panel::severityRank(entity.status)==rank)) {
+      if((!entityFilter||entityFilter(entity))&&(selected<0||entity.category==unsigned(selected))&&(preserveEntityOrder||panel::severityRank(entity.status)==rank)) {
         makeCard(entity.name,entity.status,entity.details);
         if(decorateEntity)decorateEntity(lv_obj_get_child(detailList,-1),entity);
         ++count;
       }
     }
     if(!count)makeCard(selected<0?"Warte auf Daten":panel::categoryName(selected),panel::Status::Unknown,
-      selected>=0&&!shown.categories[selected].enabled?"Noch nicht eingerichtet":shown.message,false);
+      selected>=0&&!shown.categories[selected].enabled?"Noch nicht eingerichtet":emptyEntityMessage&&emptyEntityMessage()?emptyEntityMessage():shown.message,false);
   }
   lv_obj_update_layout(detailList);
   // Measure natural content first, so no sensor text is clipped. Notes keep their own height.

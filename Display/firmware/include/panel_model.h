@@ -16,7 +16,10 @@ struct Category {
 struct Entity {
   unsigned category = 0;
   Status status = Status::Unknown;
-  uint32_t observedAt = 0;
+  uint32_t observedAt = 0, trendObservedAt = 0;
+  float trendValue = 0;
+  bool trendValid = false;
+  char id[64] = {}, trendKey[56] = {};
   char name[64] = {};
   char details[384] = {};
 };

@@ -1,8 +1,8 @@
 #pragma once
 #include "live.h"
 namespace ota {
-constexpr const char* Version="1.0.2";
-constexpr unsigned Sequence=10002;
+constexpr const char* Version="1.0.3";
+constexpr unsigned Sequence=10003;
 constexpr unsigned MaxReleases=8;
 constexpr const char* Board="waveshare-lcd5b-28151";
 constexpr const char* Layout="eaglenet-ota-v1";

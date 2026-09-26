@@ -34,3 +34,5 @@ Aktuelle ausdrückliche Freigabe: «Du kannst pushen und deployen» für Aggrega
 Aktuelle Freigabe: «Sehr gut, so umsetzen und deployen, ebenso Firmware, wenn nötig» umfasst gruppierten WebAdmin 1.2.0 und Display-Reihenfolgekorrektur 1.0.1, Dokumentation, Veröffentlichung und Aggregator-Deployment/OTA-Bereitstellung. Physische Installation/Bestätigung am Panel steht aus. Künftige Änderungen benötigen erneut Freigabe.
 
 Aktuelle ausdrückliche Freigabe: schlanke Firmware 1.0.2 veröffentlichen und per OTA bereitstellen. Favoriten, Störungsautomatik und Verlauf nicht mitbauen oder später ohne neue Freigabe reaktivieren. Aggregator-Software unverändert.
+
+Freigabe 26.09.2026: Firmware 1.0.3 samt Quellen, Dokumentation, Commit/Push und öffentlichem Release/OTA ausdrücklich autorisiert. Physische Abnahme ausstehend. Keine Übernahme privater PRTG-/Infrastrukturänderungen.

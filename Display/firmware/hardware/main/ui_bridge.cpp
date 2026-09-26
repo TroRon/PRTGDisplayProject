@@ -65,6 +65,7 @@ static void hardwareDemoBanner(){
 void uiUpdate(const panel::Snapshot& value){
     preserveEntityOrder=true;
     uniformSystemCardHeights=true;
+    displayfeatures::observe(value);
     sharedUiUpdate(value);
     hardwareCategories();
     lv_obj_set_style_bg_opa(connection,LV_OPA_TRANSP,0);

@@ -176,13 +176,14 @@ void settingsOpen() {
     notice=text("Speichern verbindet neu. Schliessen verwirft ungespeicherte Eingaben; Registerwechsel erhält sie.",24,224,976);
     lv_obj_set_height(notice,20);lv_label_set_long_mode(notice,LV_LABEL_LONG_WRAP);
     saveButton=button("Speichern & verbinden",24,246,300,save);
-    text("1.0.2 · WPA2/WPA3 · HTTPS · USB-Einrichtung optional",350,259,650);
+    text("Unterstützt 2,4-GHz-WLAN · 1.0.3",350,259,650);
     keyboard=lv_keyboard_create(parent);lv_obj_set_align(keyboard,LV_ALIGN_TOP_LEFT);lv_obj_set_pos(keyboard,0,290);lv_obj_set_size(keyboard,1024,200);
     lv_obj_set_style_text_font(keyboard,LV_FONT_DEFAULT,LV_PART_ITEMS);
     lv_keyboard_set_textarea(keyboard,ssid);
     scanPanel=lv_obj_create(parent);lv_obj_set_pos(scanPanel,12,0);lv_obj_set_size(scanPanel,1000,480);lv_obj_set_style_pad_all(scanPanel,0,0);lv_obj_set_style_bg_color(scanPanel,lv_color_hex(0x132538),0);lv_obj_clear_flag(scanPanel,LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_text_color(scanPanel,lv_color_hex(0xE4EDF5),0);
-    parent=scanPanel;scanNotice=text("WLAN suchen …",16,16,750);
+    parent=scanPanel;scanNotice=text("WLAN suchen …",16,8,750);
+    text("Unterstützt 2,4-GHz-WLAN",16,36,750);
     button("Zurück",814,6,160,[](lv_event_t*){lv_obj_add_flag(scanPanel,LV_OBJ_FLAG_HIDDEN);});
     scanList=lv_list_create(scanPanel);lv_obj_set_pos(scanList,16,64);lv_obj_set_size(scanList,960,398);lv_obj_add_flag(scanPanel,LV_OBJ_FLAG_HIDDEN);scanRevision=~0u;
     lv_obj_set_style_bg_color(scanList,lv_color_hex(0x132538),0);lv_obj_set_style_border_color(scanList,lv_color_hex(0x355269),0);

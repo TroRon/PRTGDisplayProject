@@ -148,6 +148,10 @@ bool parseHealth(const char* json, size_t length, bool allowDemo, int64_t utcNow
       if (out.entityCount >= MaxEntities) return false;
       Entity& entity = out.entities[out.entityCount++];
       entity.category=i; entity.status=state;
+      const char* id=e["id"] | "";
+      // Do not truncate identities: a collision would mix favorites or history.
+      if(strlen(id)<sizeof(entity.id))snprintf(entity.id,sizeof(entity.id),"%s",id);
+
       bool timestampsValid=true;int64_t oldest=0;
       snprintf(entity.name,sizeof(entity.name),"%s",e["label"].as<const char*>()); trimUtf8(entity.name);
       bool completeDetails = true;
@@ -160,6 +164,17 @@ bool parseHealth(const char* json, size_t length, bool allowDemo, int64_t utcNow
         if (*reason) completeDetails = append(entity.details,limit,"%s\n",reasonText(reason)) && completeDetails;
         for (JsonPair metric : s["metrics"].as<JsonObject>()) {
           char line[128];
+          // Stable sensor/metric identity, never a rounded display string. Preserve
+          // the first numeric metric even when stale: do not silently switch series.
+          if(!*entity.trendKey&&metric.value().is<double>()){
+            char key[128];int n=snprintf(key,sizeof(key),"%lu/%s",(unsigned long)(s["sensor_id"] | 0UL),metric.key().c_str());
+            if(n>0&&size_t(n)<sizeof(entity.trendKey)){
+              memcpy(entity.trendKey,key,size_t(n)+1);
+              const double v=metric.value().as<double>();entity.trendValue=float(v);
+              entity.trendObservedAt=observed>0&&observed<=UINT32_MAX?uint32_t(observed):0;
+              entity.trendValid=!out.demo&&!*reason&&state!=Status::Unknown&&isfinite(v)&&isfinite(entity.trendValue)&&entity.trendObservedAt>0&&observed<=utcNow&&utcNow-observed<=180;
+            }
+          }
           formatMetric(metric.key().c_str(),metric.value().as<double>(),metric.value().is<double>(),line,sizeof(line));
           completeDetails = append(entity.details,limit,"%s\n",line) && completeDetails;
         }

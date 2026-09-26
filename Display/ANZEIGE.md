@@ -1,4 +1,33 @@
-# Anzeige-Einstellungen ab Firmware 1.0.2
+# Anzeige-Einstellungen: Release 1.0.3
+
+**Stand 25.09.2026:** 1.0.2 lief laut Betreiber sauber über Nacht. Die nachfolgenden Erweiterungen sind implementiert und zur Veröffentlichung freigegeben und benötigt eine eigene Geräteabnahme. Pinout, Partitionen und frühere Release-Dateien bleiben unverändert.
+
+## Neue Funktionen in 1.0.3
+
+Unter **Einstellungen → Panel → Anzeige** nach unten scrollen, gewünschte Optionen auswählen und **Anzeige speichern** antippen. Neue Funktionen sind zunächst ausgeschaltet. Nachtmodus und Seitenwechsel aus 1.0.2 werden beim ersten Laden übernommen.
+
+- **Favoriten:** Systeme anhand ihrer stabilen Aggregator-ID auswählen, optional als Startübersicht verwenden. **Favoriten / Alle** unten links schaltet die Übersicht um. Rubriken zeigen weiterhin alle zugehörigen aktiven Systeme; Gesamtstatus und Hinweise werden nicht gefiltert. Umbenennen erhält die Auswahl, entfernte/deaktivierte Systeme erscheinen nicht. Bei einer anderen Aggregator-Adresse wird die alte Auswahl nicht angewendet. Demo bleibt vollständig sichtbar und liefert keine auswählbaren Favoriten.
+- **Neue kritische Störungen:** Optional zur Rubrik eines neu kritisch gewordenen Systems wechseln. Bereits beim Start bzw. nach Verbindungsausfall kritische Systeme bilden zunächst die Ausgangslage; unveränderte Alarme lösen keine Wiederholungen aus. Touch pausiert mindestens 60 Sekunden, Einstellungen/Dialoge sowie laufendes oder noch zu bestätigendes OTA pausieren ebenfalls. Erholung entfernt einen wartenden Wechsel. Höchstens ein automatischer Störungswechsel pro Minute; mehrere gleichzeitige Störungen bleiben über Hinweise sichtbar.
+- **Kleine Messwertverläufe:** Optional bis zu 16 echte Messzeitpunkte je System sammeln. Der erste numerische Messwert aus der Sensor-/Kennzahlenreihenfolge wird verwendet; seine Sensor-ID/Kennzahl steht beim Diagramm. Keine freie Kennzahlenauswahl. Kennzahlenwechsel beginnt einen neuen Verlauf. **Verlauf** auf einer Systemkarte öffnet eine Momentaufnahme; zum Aktualisieren schliessen und erneut öffnen. Y-Werte sind Rohwerte aus der API, Minimum/Maximum/letzter Wert werden genannt. X zeigt Beobachtungsreihenfolge, kein gleichmässiges Zeitraster. Ausfälle, ungültige Messungen und Abstände über drei Minuten unterbrechen die Linie. Demo, unbekannte Zustände, zukünftige/alte Werte und doppelte Messzeitpunkte werden nicht als neue Messungen gespeichert. Keine zusätzlichen PRTG-Abfragen.
+- **WLAN-Hinweis:** Display-Einrichtung, Suchfenster und WebAdmin erklären die Unterstützung von 2,4-GHz-WLAN. Der ESP32-S3 unterstützt kein 5-GHz-WLAN.
+
+## Speicher und Persistenz
+
+Verläufe benötigen genau einen begrenzten PSRAM-Puffer (8.228 Byte) erst nach Aktivierung. Ohne verfügbaren Speicher bleibt die Live-Anzeige bedienbar und die Aktivierung meldet einen Fehler. Deaktivieren gibt den Puffer frei; Neustart, andere Quelle oder entfernte Systeme verwerfen die entsprechenden Messpunkte. **Keine Verlaufssicherung im Flash** und keine periodischen NVS-Schreibvorgänge. Langzeitdaten bleiben in PRTG.
+
+Nur explizit gespeicherte Anzeigeoptionen/Favoriten werden im NVS-Namensraum `eagle-view` unter `options` gespeichert. Der alte Schlüssel `basic` wird als Migrationsquelle erhalten. Ein Downgrade auf 1.0.2 verwendet somit die zuletzt dort gespeicherten Grundeinstellungen, nicht neuere Änderungen aus 1.0.3. Werksreset löscht beide Schlüssel. Netzwerkzugang und OTA-Konfiguration bleiben unabhängig davon erhalten.
+
+Snapshot: 16.288 Byte, weiterhin Compile-Grenze unter 16 KiB. Bestehende Netzwerk-Snapshots liegen weiterhin in PSRAM; kein weiterer Task und keine Änderung an RGB-/Touch-/Framebuffer-Konfiguration. Zusätzliche Options-/ID-Metadaten und LVGL-Objekte benötigen ebenfalls RAM. Ein realer Heap-/Dauerlauftest ist deshalb weiterhin nötig.
+
+## Prüfungen und Geräteabnahme
+
+Lokale Regression: Datenmodell (inklusive Zeit-/Identitätsgrenzen), LVGL 320×240 und 1024×600, Favoriten/Umbenennung/Quellenwechsel, Verlaufslimit/Duplikate/Demo/Lücken/Kennzahlenwechsel, Allokations-/Schreibfehler, NVS-Migration, Touch-/OTA-/Erholungspause sowie bestehende Setup-/Reset-/OTA-Policies. Beide PlatformIO-Profile und ESP-IDF-Hardware-Build gehören zur Kandidatenprüfung. Lokale Tests simulieren NVS/Hardware und ersetzen keine Geräteabnahme.
+
+Nach Freigabe bzw. lokalem Test: OTA installieren und innert 120 Sekunden bestätigen. Danach Favoriten auswählen, reale Messpunkte sammeln, Touch-/Nacht-/Störungswechsel prüfen und über mehrere Stunden freie Heap-Blöcke/Systeminformationen beobachten. Bei Neustart sind Verläufe erwartungsgemäss leer. 1.0.2 bleibt Rückweg.
+
+---
+
+# Historischer Release 1.0.2
 
 ## Enthalten
 

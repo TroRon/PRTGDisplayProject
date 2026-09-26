@@ -51,3 +51,5 @@ Erneute ausdrückliche Freigabe für **1.0.0 R3**: QR-Code und Captive Portal sa
 Aktuelle konkrete Freigabe: gruppierter WebAdmin 1.2.0 und Firmware-Reihenfolgekorrektur 1.0.1 samt Veröffentlichung und Deployment/OTA-Bereitstellung. Vorherige Releases bleiben unverändert.
 
 Aktuelle ausdrückliche Freigabe: schlanke Firmware 1.0.2 veröffentlichen und per OTA bereitstellen. Favoriten, Störungsautomatik und Verlauf nicht mitbauen oder später ohne neue Freigabe reaktivieren. Aggregator-Software unverändert.
+
+Freigabe 26.09.2026: Firmware 1.0.3 samt Quellen, Dokumentation, Commit/Push und öffentlichem Release/OTA ausdrücklich autorisiert. Physische Abnahme ausstehend. Keine Übernahme privater PRTG-/Infrastrukturänderungen.

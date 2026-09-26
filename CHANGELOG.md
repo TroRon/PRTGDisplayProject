@@ -1,5 +1,17 @@
 # Änderungen
 
+## Firmware 1.0.3 – Favoriten und Messwertverläufe
+
+- Favoriten für ausgewählte Systeme und automatische Ansicht bei neuen kritischen Störungen.
+- Optionale Messwertverläufe mit maximal 16 echten Messpunkten je System, ausschliesslich im PSRAM.
+- Hinweis auf 2,4-GHz-WLAN bei der Einrichtung.
+
+Neue Komfortfunktionen sind standardmässig ausgeschaltet. Aktivierung unter Einstellungen → Panel → Anzeige. Keine zusätzlichen PRTG-Abfragen und keine periodische Verlaufssicherung im Flash.
+
+Update per OTA: Versionen prüfen → 1.0.3 installieren → nach dem Neustart innert 120 Sekunden bestätigen. WLAN und Panel-Konfiguration bleiben erhalten. 1.0.2 bleibt als Rückweg verfügbar.
+
+Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151; ESP-IDF 5.5.0. Hardware-Build, beide PlatformIO-Profile und lokale Modell-/LVGL-/Einstellungstests erfolgreich. Signaturen, Paket- und Quellprüfsummen geprüft. Physische Geräteabnahme von 1.0.3 steht noch aus.
+
 ## Firmware 1.0.2 – schlanke Anzeige-Erweiterung
 
 - Einheitlich hohe Systemkarten mit vollständigem Text.

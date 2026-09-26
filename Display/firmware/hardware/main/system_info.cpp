@@ -26,7 +26,7 @@ void readPanelSystemInfo(PanelSystemInfo& out){
     }
     snprintf(out.hardware,sizeof(out.hardware),
         "Waveshare ESP32-S3-Touch-LCD-5B\nSKU 28151\n\n"
-        "Firmware: 1.0.2\nESP-IDF: %s\nLVGL: 8.4.0\n\n"
+        "Firmware: 1.0.3\nESP-IDF: %s\nLVGL: 8.4.0\n\n"
         "ESP32-S3: Revision %u.%u · %u Kerne\nCPU-Konfiguration: %u MHz\n"
         "Flash erkannt: %u MiB\nPSRAM erkannt: %u MiB\n\n"
         "Display: 1024 × 600 · RGB565\nTouch: GT911 · kapazitiv\n"
