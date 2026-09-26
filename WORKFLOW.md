@@ -55,3 +55,5 @@ Aktuelle ausdrückliche Freigabe: schlanke Firmware 1.0.2 veröffentlichen und p
 Freigabe 26.09.2026: Firmware 1.0.3 samt Quellen, Dokumentation, Commit/Push und öffentlichem Release/OTA ausdrücklich autorisiert. Physische Abnahme ausstehend. Keine Übernahme privater PRTG-/Infrastrukturänderungen.
 
 Freigabe 26.09.2026: Display 1.1.0 und Aggregator 1.3.0 samt Quellen, Dokumentation, Commit/Push, Release/OTA und Aggregator-Deployment autorisiert. Physische Abnahme ausstehend. Private PRTG-Sensoränderungen gehören nicht zu dieser Veröffentlichung.
+
+Freigabe 26.09.2026: Firmware 1.1.1 mit unten ausgerichteten Verlaufsbuttons samt Dokumentation, Commit/Push, Release und OTA autorisiert. Aggregator-Software und private PRTG-Änderungen bleiben unverändert.

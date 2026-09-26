@@ -129,8 +129,16 @@ static void renderCards(bool resetScroll) {
       const auto h=lv_obj_get_height(lv_obj_get_child(detailList,i));
       if(h>tallest)tallest=h;
     }
-    for(uint32_t i=0;i<lv_obj_get_child_cnt(detailList);++i)
-      lv_obj_set_height(lv_obj_get_child(detailList,i),tallest);
+    for(uint32_t i=0;i<lv_obj_get_child_cnt(detailList);++i) {
+      auto* card=lv_obj_get_child(detailList,i);
+      lv_obj_set_height(card,tallest);
+      // Let the measured values area absorb spare height, keeping age/actions at the bottom.
+      auto* values=lv_obj_get_child(card,1);
+      if(values) {
+        lv_obj_set_style_min_height(values,lv_obj_get_height(values),0);
+        lv_obj_set_flex_grow(values,1);
+      }
+    }
     lv_obj_update_layout(detailList);
   }
   lv_obj_scroll_to_y(detailList,scroll,LV_ANIM_OFF);updateScrollHint();

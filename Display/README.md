@@ -1,5 +1,12 @@
 # Display einrichten
 
+## Firmware 1.1.1 – Verlaufsbuttons einheitlich unten
+
+Verlaufsbuttons und Datenalter stehen in allen gleich hohen Systemkarten am unteren Rand. Kürzere PBS-Inhalte lassen freien Platz oberhalb dieser Fusszeile. Native Prüfung mit unterschiedlich langen Karten bestätigt denselben unteren Button-Abstand von 11 Pixeln. Modell-, LVGL- und Einstellungstests sowie alle Firmware-Builds erfolgreich; physische Abnahme ausstehend.
+
+Update unter Firmware → Update prüfen → 1.1.1 installieren, danach den Start innert 120 Sekunden bestätigen. Einstellungen bleiben erhalten. Aggregator 1.3.0 unverändert; bisherige Releases bleiben als Rückweg verfügbar.
+
+
 ## Display 1.1.0 und Aggregator 1.3.0
 
 Zentrale Anzeigeeinstellungen pro Display unter dem neuen Register **Displays**: Name, Seitenwechsel, Nachtmodus, UTC-Versatz, Favoriten, Störungsansicht und RAM-Verläufe. Einstellungen bleiben offline gespeichert; das Display bestätigt die Übernahme. WLAN und Zugangsdaten bleiben lokal. [Anleitung](https://github.com/TroRon/PRTGDisplayProject/blob/main/docs/DISPLAY-VERWALTUNG.md).
@@ -23,7 +30,7 @@ Update per OTA: Versionen prÃ¼fen â†’ 1.0.3 installieren â†’ nach de
 
 Waveshare ESP32-S3-Touch-LCD-5B, SKU 28151; ESP-IDF 5.5.0. Hardware-Build, beide PlatformIO-Profile und lokale Modell-/LVGL-/Einstellungstests erfolgreich. Signaturen, Paket- und QuellprÃ¼fsummen geprÃ¼ft. Physische GerÃ¤teabnahme von 1.0.3 steht noch aus.
 
-[USB-Paket 1.1.0](releases/prtg-display-1.1.0.zip) Â· [Anzeige einrichten](ANZEIGE.md)
+[USB-Paket 1.1.1](releases/prtg-display-1.1.1.zip) Â· [Anzeige einrichten](ANZEIGE.md)
 
 ## Firmware 1.0.2 â€“ schlanke Anzeige-Erweiterung
 
