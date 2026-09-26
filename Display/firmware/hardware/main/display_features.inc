@@ -1,3 +1,7 @@
+#include "display_config.h"
+#ifndef DISPLAY_FEATURES_NATIVE_TEST
+#include "remote_config.h"
+#endif
 // Hardware-only optional presentation features; bounded RAM history, no periodic flash writes. Accessed exclusively under the LVGL lock.
 #include <ctime>
 #include <cmath>
@@ -12,13 +16,7 @@
 #include "ota.h"
 namespace displayfeatures {
 constexpr unsigned Samples=16;
-struct Options {
- uint32_t version=1,rotateSeconds=20,nightStart=22,nightEnd=7,brightness=25;
- int32_t utcOffsetMinutes=60;
- bool rotate=false,night=false,interrupt=false,history=false,favoriteHome=false;
- char favorites[panel::MaxEntities][64]={};
- char origin[256]={};
-};
+using Options=displayconfig::Options;
 struct Point { uint32_t at=0;float value=0; };
 struct Track { char id[64]={},key[128]={};uint32_t count=0,gaps=0;bool pendingGap=false;Point points[Samples]; };
 struct History { uint32_t version=1;char origin[256]={};Track tracks[panel::MaxEntities]; };
@@ -137,6 +135,9 @@ static bool ensureHistory(){
  history=new(memory) History;return true;
 }
 static void save(lv_event_t*){
+#ifndef DISPLAY_FEATURES_NATIVE_TEST
+ if(remoteconfig::managed()){lv_label_set_text(optionNotice,"Zentral verwaltet. Zuerst zur lokalen Verwaltung wechseln.");return;}
+#endif
  draft.rotate=lv_obj_has_state(rotateCheck,LV_STATE_CHECKED);draft.night=lv_obj_has_state(nightCheck,LV_STATE_CHECKED);draft.interrupt=lv_obj_has_state(alertCheck,LV_STATE_CHECKED);draft.history=lv_obj_has_state(historyCheck,LV_STATE_CHECKED);draft.favoriteHome=lv_obj_has_state(homeCheck,LV_STATE_CHECKED);
  draft.rotateSeconds=lv_spinbox_get_value(interval);draft.nightStart=lv_spinbox_get_value(startHour);draft.nightEnd=lv_spinbox_get_value(endHour);draft.brightness=lv_spinbox_get_value(level);draft.utcOffsetMinutes=lv_spinbox_get_value(zone);
  for(unsigned i=0;i<favoriteCount;i++){bool on=lv_obj_has_state(favoriteChecks[i],LV_STATE_CHECKED);for(auto& id:draft.favorites)if(!strcmp(id,favoriteIds[i]))*id=0;if(on)for(auto& id:draft.favorites)if(!*id){snprintf(id,sizeof(id),"%s",favoriteIds[i]);break;}}
@@ -149,6 +150,13 @@ static void save(lv_event_t*){
 static void open(){
  if(dialog)return;
  draft=options;preferences::Config source;preferences::get(source);if(strcmp(draft.origin,source.origin)){memset(draft.favorites,0,sizeof(draft.favorites));draft.favoriteHome=false;}snprintf(draft.origin,sizeof(draft.origin),"%s",source.origin);window("Anzeige & Favoriten");
+#ifndef DISPLAY_FEATURES_NATIVE_TEST
+ if(remoteconfig::managed()){
+  caption(dialog,"Vom Aggregator verwaltet. Änderungen dort senden; offline bleibt die letzte bestätigte Konfiguration erhalten.");
+  action(dialog,"Lokal verwalten",[](lv_event_t*){if(remoteconfig::release()){close(nullptr);}else caption(dialog,"Speichern fehlgeschlagen; erneut versuchen.");});
+  return;
+ }
+#endif
  rotateCheck=check(dialog,"Automatischer Seitenwechsel (Berührung pausiert 60 Sekunden)",draft.rotate);interval=number(dialog,"Seitenwechsel in Sekunden",draft.rotateSeconds,10,60);
  alertCheck=check(dialog,"Bei neuer kritischer Störung zur betroffenen Rubrik wechseln",draft.interrupt);
  nightCheck=check(dialog,"Zeitgesteuerter Nachtmodus",draft.night);startHour=number(dialog,"Nacht ab Stunde",draft.nightStart,0,23);endHour=number(dialog,"Nacht bis Stunde (gleiche Stunden = ganztägig)",draft.nightEnd,0,23);level=number(dialog,"Sichtbare Helligkeit in Prozent (softwareseitige Abdunklung)",draft.brightness,10,100);zone=number(dialog,"UTC-Versatz in Minuten (15er-Schritte), z. B. 60 Winter / 120 Sommer",draft.utcOffsetMinutes,-720,840);
@@ -161,9 +169,7 @@ static void open(){
  if(!favoriteCount)caption(dialog,"Für die Favoritenauswahl zuerst echte Live-Daten empfangen.");
  optionNotice=caption(dialog,"");action(dialog,"Anzeige speichern",save);
 }
-static void begin(){
- hardwareIdleControl=true;entityFilter=filter;decorateEntity=decorate;
- emptyEntityMessage=[]()->const char*{preferences::Config source;preferences::get(source);return selected<0&&favoritesOnly&&!shown.demo&&!strcmp(options.origin,source.origin)?"Keine aktiven Favoriten. Unter Einstellungen / Panel / Anzeige auswählen oder Favoriten / Alle antippen.":nullptr;};
+static void loadLocal(){options=Options{};
  nvs_handle_t n;if(nvs_open("eagle-view",NVS_READONLY,&n)==ESP_OK){
  Options c;size_t size=sizeof(c);
  if(nvs_get_blob(n,"options",&c,&size)==ESP_OK&&size==sizeof(c)&&valid(c))options=c;
@@ -174,17 +180,54 @@ static void begin(){
   }
  }
  nvs_close(n);}
- if(options.history&&!ensureHistory())options.history=false;
+}
+static void begin(){
+ hardwareIdleControl=true;entityFilter=filter;decorateEntity=decorate;
+ emptyEntityMessage=[]()->const char*{preferences::Config source;preferences::get(source);return selected<0&&favoritesOnly&&!shown.demo&&!strcmp(options.origin,source.origin)?"Keine aktiven Favoriten. Unter Einstellungen / Panel / Anzeige auswählen oder Favoriten / Alle antippen.":nullptr;};
+ loadLocal();
+#ifndef DISPLAY_FEATURES_NATIVE_TEST
+ remoteconfig::begin();displayconfig::Command restored;if(remoteconfig::restore(restored))options=restored.settings.view;
+ remoteconfig::report(options);
+#endif
+ if(options.history&&!ensureHistory()){
+ options.history=false;
+#ifndef DISPLAY_FEATURES_NATIVE_TEST
+ if(remoteconfig::managed())remoteconfig::failed("MEMORY");
+#endif
+ }
  historyOrigin();favoritesOnly=options.favoriteHome;
  if(favoriteButton)return;
  favoriteButton=lv_btn_create(lv_scr_act());lv_obj_set_pos(favoriteButton,16,height-44);lv_obj_set_size(favoriteButton,200,40);auto* l=lv_label_create(favoriteButton);lv_label_set_text(l,"Favoriten / Alle");lv_obj_center(l);
  lv_obj_add_event_cb(favoriteButton,[](lv_event_t*){favoritesOnly=!favoritesOnly;navigate(-1);hardwareCategories();},LV_EVENT_CLICKED,nullptr);
  lv_obj_set_pos(footer,230,height-30);lv_obj_set_width(footer,520);
 }
+#ifndef DISPLAY_FEATURES_NATIVE_TEST
+static void centralTick(uint32_t now,bool busy){
+ static bool wasManaged=remoteconfig::managed();static uint32_t lastAttempt=0;const bool managed=remoteconfig::managed();
+ if(wasManaged&&!managed){loadLocal();if(options.history&&!ensureHistory())options.history=false;if(!options.history&&history){heap_caps_free(history);history=nullptr;}favoritesOnly=options.favoriteHome;resetDimming();renderCards(false);}wasManaged=managed;
+ remoteconfig::report(options);
+ if(!remoteconfig::hasPending()||busy||lv_disp_get_inactive_time(nullptr)<2000||uint32_t(now-lastAttempt)<5000)return;
+ auto* command=(displayconfig::Command*)heap_caps_malloc(sizeof(displayconfig::Command),MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);if(!command)return;
+ new(command) displayconfig::Command;
+ if(remoteconfig::pending(*command)){
+  lastAttempt=now;bool allocated=false;
+  if(command->central&&command->settings.view.history&&!history){allocated=ensureHistory();if(!allocated){remoteconfig::failed("MEMORY");heap_caps_free(command);return;}}
+  if(remoteconfig::accept(*command)){
+   if(command->central)options=command->settings.view;else {loadLocal();if(options.history&&!ensureHistory())options.history=false;}
+   if(!options.history&&history){heap_caps_free(history);history=nullptr;}
+   favoritesOnly=options.favoriteHome;*pendingCritical=0;resetDimming();renderCards(false);remoteconfig::report(options);wasManaged=remoteconfig::managed();
+  }else if(allocated&&!options.history){heap_caps_free(history);history=nullptr;}
+ }
+ heap_caps_free(command);
+}
+#endif
 static void tick(uint32_t now){
  if(uint32_t(now-lastTick)<1000)return;
  lastTick=now;
  ota::Status otaState;ota::status(otaState);const bool busy=settingsIsOpen()||dialog||otaState.busy||otaState.pending;
+#ifndef DISPLAY_FEATURES_NATIVE_TEST
+ centralTick(now,busy);
+#endif
  const uint32_t idle=lv_disp_get_inactive_time(nullptr);
  if(!started){lastRotation=now;started=true;}
  if(busy||idle<60000)lastRotation=now;

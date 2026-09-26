@@ -1,3 +1,4 @@
+import {createDisplayStore} from './displays.mjs';
 import { createFirmwareService } from './firmware.mjs';
 import { fileURLToPath } from 'node:url';
 import { readConfig, readSecret } from './config.mjs';
@@ -16,7 +17,7 @@ try {
   const args = process.argv.slice(2);
   if (args.some(a => !['--demo', '--discover'].includes(a)) || args.length > 1) throw new Error('INVALID_ARGUMENTS');
   const demo = args.includes('--demo');
-  const config = readConfig(process.env.CONFIG_FILE || fileURLToPath(new URL('../config/aggregator.example.json', import.meta.url)));
+  const config = readConfig(process.env.CONFIG_FILE || fileURLToPath(new URL('../../config/aggregator.example.json', import.meta.url)));
   const prtgToken = readSecret(process.env, 'PRTG_API_TOKEN', !demo && !process.env.ADMIN_DIRECTORY);
   let client = demo ? null : new PrtgClient(config, prtgToken);
   if (args.includes('--discover')) {
@@ -36,15 +37,16 @@ try {
     const runtime = new MonitoringRuntime({config,prtgToken,demo,log});
     const adminToken = (process.env.OTA_DIRECTORY || process.env.ADMIN_DIRECTORY) ? readSecret(process.env, 'OTA_ADMIN_TOKEN') : '';
     const firmware = process.env.OTA_DIRECTORY ? createFirmwareService({directory:process.env.OTA_DIRECTORY,adminToken,panelToken,log}) : null;
-    let admin = null;
+    let admin = null, displays = null;
     if(process.env.ADMIN_DIRECTORY){
       const store = await createAdminStore({directory:process.env.ADMIN_DIRECTORY,config,prtgToken,apply:next=>runtime.update(next)});
       runtime.update(store.effective());
+      displays=await createDisplayStore(process.env.ADMIN_DIRECTORY);
       const auth=await createAdminAuth({directory:process.env.ADMIN_DIRECTORY,token:adminToken});
       const github=createGithubFirmware({url:process.env.OTA_GITHUB_CATALOG});
-      admin=createAdmin({auth,github,origin:process.env.ADMIN_ORIGIN,token:adminToken,panelToken,store,runtime,firmware,log});
+      admin=createAdmin({auth,github,displays,origin:process.env.ADMIN_ORIGIN,token:adminToken,panelToken,store,runtime,firmware,log});
     }
-    const server = createApi(runtime, panelToken, parseAllowedClients(process.env.ALLOWED_CLIENT_IPS), firmware, admin);
+    const server = createApi(runtime, panelToken, parseAllowedClients(process.env.ALLOWED_CLIENT_IPS), firmware, admin, displays);
     server.requestTimeout = firmware ? 120000 : 10000;
     server.headersTimeout = 10000;
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, host, resolve); });

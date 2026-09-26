@@ -1,5 +1,16 @@
 # Änderungen
 
+## Display 1.1.0 und Aggregator 1.3.0
+
+Zentrale Anzeigeeinstellungen pro Display unter dem neuen Register **Displays**: Name, Seitenwechsel, Nachtmodus, UTC-Versatz, Favoriten, Störungsansicht und RAM-Verläufe. Einstellungen bleiben offline gespeichert; das Display bestätigt die Übernahme. WLAN und Zugangsdaten bleiben lokal. [Anleitung](https://github.com/TroRon/PRTGDisplayProject/blob/main/docs/DISPLAY-VERWALTUNG.md).
+
+Flüssigere Bedienung vorbereitet: keine Banner-Neuzeichnung alle 10 ms und kein kompletter Kartenaufbau allein wegen neuer Messzeitstempel. Sichtbare Werte und Zustände werden weiterhin aktualisiert.
+
+Zuerst Aggregator auf 1.3.0 aktualisieren, danach Display 1.1.0 installieren und OTA-Start innert 120 Sekunden bestätigen. Vorherige Firmware bleibt als Rückweg verfügbar. Kein Werksreset nötig. Für die neuen Einstellungen **Displays → Vom Aggregator → An Display senden** verwenden.
+
+34 Aggregator-Tests, native Modell-/LVGL-/Einstellungs-/Protokolltests, Desktop-/Mobilbrowser und alle drei Firmware-Builds erfolgreich. ESP-IDF 5.5.0, Waveshare ESP32-S3-Touch-LCD-5B. Physische Abnahme und Messung der Bedienbarkeit stehen aus.
+
+
 ## Firmware 1.0.3 – Favoriten und Messwertverläufe
 
 - Favoriten für ausgewählte Systeme und automatische Ansicht bei neuen kritischen Störungen.

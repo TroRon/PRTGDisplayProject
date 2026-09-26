@@ -222,7 +222,7 @@ void settingsOpen() {
     parent=pages[4];lv_obj_clear_flag(parent,LV_OBJ_FLAG_SCROLLABLE);
     preferences::Config identity;preferences::get(identity);
     panelOrigin=field("Aggregator-Adresse: https://hostname oder https://hostname:port (ohne Pfad)",identity.origin,24,0,976,255);
-    panelName=field("Anzeigename dieses Panels (maximal 48 UTF-8-Bytes)",identity.name,24,83,976,48);
+    panelName=field("Lokaler Anzeigename (zentraler Name hat Vorrang)",identity.name,24,83,976,48);
     panelNotice=text("Adresse und Name gelten auch nach Neustart. Systemnamen der Messwerte kommen vom Aggregator.",24,170,976);
     button("Panel speichern",24,246,300,[](lv_event_t*){
         preferences::Config c;snprintf(c.origin,sizeof(c.origin),"%s",lv_textarea_get_text(panelOrigin));

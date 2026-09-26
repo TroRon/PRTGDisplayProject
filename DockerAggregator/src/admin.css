@@ -3,3 +3,6 @@
 fieldset{border:0;padding:0;margin:0;min-width:0}fieldset:disabled{opacity:.7}
 
 .savebar{top:8px;bottom:auto;z-index:10;margin:12px 0 24px}.savebar.unsaved{border:2px solid #f2c86e}.savebar.unsaved strong{color:#f2c86e}.system-group{border:1px solid #385066;border-radius:12px;padding:16px;margin:18px 0}.system-group>summary{cursor:pointer;font-size:20px;font-weight:700;padding:8px;margin-bottom:16px}.inactive{background:#18212b;border-style:dashed}.inactive h3{color:#a6b3bf}.overview-group{margin:24px 0}.system-group summary:focus-visible{outline:2px solid #68baff}
+
+#displayList .display-toggle { display:flex; flex-direction:row; align-items:center; gap:0.65rem; min-height:44px; }
+#displayList .display-toggle input { width:20px; height:20px; flex:0 0 20px; margin:0; }

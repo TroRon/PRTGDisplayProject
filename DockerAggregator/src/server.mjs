@@ -1,3 +1,4 @@
+import {readDisplayBody} from './displays.mjs';
 import { createServer } from 'node:http';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { isIP } from 'node:net';
@@ -15,7 +16,7 @@ function authorized(header, token) {
   return timingSafeEqual(hash(header || ''), hash(`Bearer ${token}`));
 }
 
-export function createApi(collector, token = '', allowedClients = null, firmware = null, admin = null) {
+export function createApi(collector, token = '', allowedClients = null, firmware = null, admin = null, displays = null) {
   return createServer((req, res) => {
     const send = (code, value) => {
       res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
@@ -30,6 +31,11 @@ export function createApi(collector, token = '', allowedClients = null, firmware
     }
     if (firmware && (req.url.startsWith('/api/v1/firmware/') || req.url === '/updates' || req.url === '/updates.js')) {
       Promise.resolve(firmware(req,res)).catch(() => { if(!res.headersSent)send(500,{error:'INTERNAL_ERROR'});else res.destroy(); });return;
+    }
+    if(displays && req.url==='/api/v1/display/sync'){
+      if(req.method!=='POST')return send(405,{error:'METHOD_NOT_ALLOWED'});
+      if(!token||!authorized(req.headers.authorization,token))return send(401,{error:'UNAUTHORIZED'});
+      Promise.resolve().then(()=>readDisplayBody(req)).then(data=>displays.sync(data,req.headers['x-display-key'])).then(value=>send(200,value)).catch(e=>send(e.message==='DISPLAY_AUTH'?403:400,{error:['DISPLAY_REQUEST','DISPLAY_AUTH','DISPLAY_BUSY','DISPLAY_FULL','DISPLAY_SETTINGS'].includes(e.message)?e.message:'DISPLAY_STORAGE'}));return;
     }
     if (req.method !== 'GET') return send(405, { error: 'METHOD_NOT_ALLOWED' });
     if (req.url !== '/api/v1/health') return send(404, { error: 'NOT_FOUND' });

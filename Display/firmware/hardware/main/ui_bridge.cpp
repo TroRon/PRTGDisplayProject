@@ -1,3 +1,6 @@
+#ifndef DISPLAY_FEATURES_NATIVE_TEST
+#include "remote_config.h"
+#endif
 #include "preferences.h"
 // Keep simulator source unchanged. Adapter owns LVGL timer processing.
 #include <lvgl.h>
@@ -43,10 +46,13 @@ void hardwareSettingsAttach() {
 
 static void hardwareDemoBanner(){
     preferences::Config identity;preferences::get(identity);
-    lv_label_set_text_fmt(brand,"%s · LIVE",identity.name);
+#ifndef DISPLAY_FEATURES_NATIVE_TEST
+    remoteconfig::effectiveName(identity.name,sizeof(identity.name));
+#endif
+    char title[160];snprintf(title,sizeof(title),"%s · %s",identity.name,shown.demo?"DEMO · FIKTIVE DATEN":shown.hasUpdate&&!shown.apiAvailable?"LIVE · VERALTETE WERTE":"LIVE");
+    if(strcmp(lv_label_get_text(brand),title))lv_label_set_text(brand,title);
     if(!shown.demo){
         if(shown.hasUpdate&&!shown.apiAvailable){
-            lv_label_set_text_fmt(brand,"%s · LIVE · VERALTETE WERTE",identity.name);
             badge(health,panel::Status::Unknown,"Unbekannt");
             const auto age=shown.sourceAgeSeconds+uint32_t(millis()-shown.receivedAtMs)/1000;
             lv_label_set_text_fmt(connection,"VERALTET · Letzte Daten vor %lu s · Aktueller Zustand unbekannt · Verbindung prüfen",(unsigned long)age);
@@ -55,7 +61,6 @@ static void hardwareDemoBanner(){
         }
         return;
     }
-    lv_label_set_text_fmt(brand,"%s · DEMO · FIKTIVE DATEN",identity.name);
     badge(health,panel::Status::Warning,"DEMO");
     lv_label_set_text(connection,"DEMO: Keine Live-Überwachung · Fiktive Daten · Verbindungsstatus in Einstellungen");
     lv_obj_set_style_text_color(connection,lv_color_hex(0xFFD166),0);
@@ -71,5 +76,6 @@ void uiUpdate(const panel::Snapshot& value){
     lv_obj_set_style_bg_opa(connection,LV_OPA_TRANSP,0);
     hardwareDemoBanner();
 }
-void uiLoop(uint32_t now){sharedUiLoop(now);hardwareDemoBanner();displayfeatures::tick(now);}
+void uiLoop(uint32_t now){const bool refresh=uint32_t(now-lastClock)>=1000;sharedUiLoop(now);if(refresh)hardwareDemoBanner();displayfeatures::tick(now);}
+
 bool hardwareDemoActive(){return shown.demo;}

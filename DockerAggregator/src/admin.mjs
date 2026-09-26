@@ -1,10 +1,11 @@
+import {readDisplayBody} from './displays.mjs';
 import {createHash, timingSafeEqual} from 'node:crypto';
 import {Readable} from 'node:stream';
 import {readFile} from 'node:fs/promises';
 
 const hash = value => createHash('sha256').update(value).digest();
 const errors = new Set(['SAVE_BUSY','CONFIG_CONFLICT','CONFIG_REQUEST','CONFIG_ENTITIES','CONFIG_TIMING','CONFIG_STALE_WINDOW','CONFIG_PRTG_HTTPS_ORIGIN','CONFIG_UNKNOWN_FIELD','CONFIG_ENTITY','CONFIG_SENSOR_KEY','CONFIG_SENSOR_ID','CONFIG_METRICS','CONFIG_TOO_LARGE','PRTG_TOKEN_REQUIRED','PRTG_TOKEN_INVALID']);
-export function createAdmin({origin, token, panelToken, store, runtime, firmware, auth=null, github=null, log=()=>{}}) {
+export function createAdmin({origin, token, panelToken, store, runtime, firmware, auth=null, github=null, displays=null, log=()=>{}}) {
   const url=new URL(origin);
   if(url.origin!==origin || url.username || url.password || !(url.protocol==='https:' || (url.protocol==='http:' && ['127.0.0.1','localhost','[::1]'].includes(url.hostname))) || !token || token.length<32 || token===panelToken) throw Error('ADMIN_CONFIG');
   const expected=hash(`Bearer ${token}`), attempts=new Map();
@@ -49,6 +50,11 @@ export function createAdmin({origin, token, panelToken, store, runtime, firmware
     if(github&&firmware&&req.url==='/api/admin/github/import'&&req.method==='POST'){
       let data;try{data=await github.download((await body(req)).sha256);}catch{return send(res,502,{error:'GITHUB_FAILED'});}
       const upload=Readable.from([data]);upload.url='/api/v1/firmware/upload';upload.method='PUT';upload.headers={authorization:`Bearer ${token}`,'content-length':String(data.length)};return firmware(upload,res);
+    }
+    if(displays && req.url==='/api/admin/displays' && req.method==='GET')return send(res,200,{displays:displays.list()});
+    if(displays && /^\/api\/admin\/displays\/[a-f0-9]{32}$/.test(req.url) && req.method==='PUT'){
+      try{return send(res,200,await displays.update(req.url.split('/').pop(),await readDisplayBody(req)));}
+      catch(e){return send(res,e.message==='DISPLAY_CONFLICT'?409:400,{error:['DISPLAY_CONFLICT','DISPLAY_SETTINGS','DISPLAY_REQUEST','DISPLAY_NOT_FOUND','DISPLAY_BUSY'].includes(e.message)?e.message:'SAVE_FAILED'});}
     }
     if(req.url==='/api/admin/config'&&req.method==='GET')return send(res,200,store.view());
     if(req.url==='/api/admin/status'&&req.method==='GET'){

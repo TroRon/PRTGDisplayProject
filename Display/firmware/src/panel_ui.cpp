@@ -85,7 +85,13 @@ static void makeCard(const char* name,panel::Status status,const char* body,bool
 // Hardware follows the configured order; the historical simulator keeps severity order.
 static bool preserveEntityOrder=false;
 static bool uniformSystemCardHeights=false;
+#ifdef DISPLAY_FEATURES_NATIVE_TEST
+static unsigned cardRenderCount=0;
+#endif
 static void renderCards(bool resetScroll) {
+#ifdef DISPLAY_FEATURES_NATIVE_TEST
+ ++cardRenderCount;
+#endif
   if(!wide&&selected<0)return;
   int scroll=resetScroll?0:lv_obj_get_scroll_y(detailList);lv_obj_clean(detailList);
   if(selected==5) {
@@ -188,9 +194,13 @@ void uiBegin(void (*nextScenario)()) {
   activity=millis();lastClock=activity;navigate(-1);
 }
 void uiUpdate(const panel::Snapshot& value) {
-  bool changed=shown.entityCount!=value.entityCount||memcmp(shown.entities,value.entities,sizeof(shown.entities))||
+  bool changed=shown.entityCount!=value.entityCount||shown.demo!=value.demo||
     memcmp(shown.categories,value.categories,sizeof(shown.categories))||strcmp(shown.alerts,value.alerts)||
     shown.apiAvailable!=value.apiAvailable||strcmp(shown.message,value.message);
+  for(unsigned i=0;!changed&&i<value.entityCount;i++){
+    const auto& a=shown.entities[i];const auto& b=value.entities[i];
+    changed=a.category!=b.category||a.status!=b.status||strcmp(a.id,b.id)||strcmp(a.name,b.name)||strcmp(a.details,b.details);
+  }
   shown=value;
   lv_label_set_text_fmt(brand,"EAGLENET · %s",shown.demo?"DEMO":"LIVE");badge(health,shown.overall,panel::statusText(shown.overall));
   updateConnection(millis());

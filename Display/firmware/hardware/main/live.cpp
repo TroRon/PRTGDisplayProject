@@ -1,3 +1,4 @@
+#include "remote_config.h"
 #include "preferences.h"
 #include "esp_crt_bundle.h"
 #include "ota.h"
@@ -341,6 +342,7 @@ static void worker(void*) {
         } else if(!synchronised||time(nullptr)<1735689600)fail("Warte auf NTP-Zeit - Zeitserver/Firewall prüfen",0,ApiState::Waiting);
         else if(uint32_t(now-lastPoll)>=retryPolicy.delay){
             const bool transient=request(active,retryPolicy.pending);retryPolicy.completed(transient);lastPoll=millis();
+            if(!transient&&model->value.apiAvailable)remoteconfig::service(active.token,body,32769);
         }
         if(model->value.apiAvailable&&uint32_t(millis()-model->value.receivedAtMs)>=panel::LinkTimeoutMs)
             fail("Keine aktuellen Aggregator-Daten");
