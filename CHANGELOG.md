@@ -1,5 +1,16 @@
 # Änderungen
 
+## Firmware 1.1.2 – Anzeigeeinstellungen nach Neustart erhalten
+
+Korrigiert die Startreihenfolge: NVS-Speicher und Panel-Konfiguration werden vor den Anzeigeoptionen initialisiert. Gespeicherter Nachtmodus, Messwertverläufe, Seitenwechsel und Favoriten werden dadurch nach Neustart/OTA wieder geladen; ebenso die zentrale Verwaltung. Bisher erfolgte der Lesezugriff zu früh und die Anzeige fiel auf deaktivierte Standardwerte zurück.
+
+Vorhandene gespeicherte Werte werden nicht gelöscht. Falls sie zwischenzeitlich mit deaktivierten Werten überschrieben wurden, bitte erneut aktivieren und speichern. Die gesammelten Verlaufspunkte selbst bleiben bewusst nur im RAM und beginnen nach einem Neustart neu.
+
+Update unter Firmware → Update prüfen → 1.1.2 installieren, danach den Start innert 120 Sekunden bestätigen. Anschliessend Optionen kontrollieren und einen weiteren Neustart prüfen. Kein Werksreset nötig. Aggregator bleibt 1.3.0.
+
+Startreihenfolge und erneutes Laden aller Anzeigeoptionen sind zusätzlich geprüft. Modell-/LVGL-/Einstellungstests und alle Firmware-Builds erfolgreich. Physische Neustart-/OTA-Abnahme steht aus. Frühere Versionen bleiben verfügbar, enthalten aber diesen Fehler weiterhin.
+
+
 ## Firmware 1.1.1 – Verlaufsbuttons einheitlich unten
 
 Verlaufsbuttons und Datenalter stehen in allen gleich hohen Systemkarten am unteren Rand. Kürzere PBS-Inhalte lassen freien Platz oberhalb dieser Fusszeile. Native Prüfung mit unterschiedlich langen Karten bestätigt denselben unteren Button-Abstand von 11 Pixeln. Modell-, LVGL- und Einstellungstests sowie alle Firmware-Builds erfolgreich; physische Abnahme ausstehend.

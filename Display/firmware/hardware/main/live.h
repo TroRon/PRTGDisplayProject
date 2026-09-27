@@ -53,6 +53,7 @@ struct Status {
     char message[128]="Einrichtung erforderlich";
 };
 bool begin();
+// Initialize persistent storage and panel identity before constructing the UI; safe to call again.
 void prepare();
 bool read(panel::Snapshot&,bool& sourcesUnavailable);
 void status(Status&);

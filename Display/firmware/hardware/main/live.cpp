@@ -93,7 +93,16 @@ static void event(void*,esp_event_base_t base,int32_t id,void* data) {
     if(base==WIFI_EVENT&&id==WIFI_EVENT_STA_DISCONNECTED){connected=false;if(data)disconnectReason=((wifi_event_sta_disconnected_t*)data)->reason;}
     if(base==IP_EVENT&&id==IP_EVENT_STA_GOT_IP)connected=true;
 }
-void prepare(){if(!guard)guard=xSemaphoreCreateMutexStatic(&guardStorage);}
+void prepare(){
+    if(guard)return;
+    guard=xSemaphoreCreateMutexStatic(&guardStorage);
+    // Must precede hardwareSettingsAttach(): both local and central display options use NVS.
+    const esp_err_t result=nvs_flash_init();
+    nvsReady=result==ESP_OK;
+    ESP_LOGI(Tag,"Settings storage ready=%d (%s)",nvsReady,esp_err_to_name(result));
+    // Never erase NVS automatically on an initialization error.
+    preferences::begin();
+}
 void status(Status& out){
     if(guard)xSemaphoreTake(guard,portMAX_DELAY);
     out=currentStatus;out.wifi=connected;out.clock=synchronised;out.disconnectReason=disconnectReason;
@@ -409,8 +418,6 @@ bool begin() {
             return xTaskCreateStatic(worker,"health-api",WorkerStackBytes,nullptr,2,workerStack,&workerControl)!=nullptr;
         },nullptr}
     };
-    nvsReady=nvs_flash_init()==ESP_OK;
-    preferences::begin();
     if(nvsReady){nvs_handle_t handle;auto opened=nvs_open("eagle-live",NVS_READONLY,&handle);initialSetup=opened==ESP_ERR_NVS_NOT_FOUND;if(opened==ESP_OK){
         Config loaded;size_t size=sizeof(loaded);
         auto loadedResult=nvs_get_blob(handle,"config",&loaded,&size);initialSetup=loadedResult==ESP_ERR_NVS_NOT_FOUND;
