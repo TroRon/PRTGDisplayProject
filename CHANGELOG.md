@@ -1,5 +1,16 @@
 # Änderungen
 
+## Display 1.2.0 / Aggregator 1.4.0 – aktive Pulse-Alarme
+
+Pulse als zusätzliche Quelle unter Dienste: konfigurierbar im WebAdmin mit Serveradresse, Anzeigename und geschütztem Token. Eine Übersicht zählt alle aktiven Alarme; bis zu sechs Detailkarten zeigen System, Meldung, Beginn und Quittierungsstatus. Kritische Alarme stehen zuerst. Die Anbindung ist ausschliesslich lesend.
+
+Fehlende, alte oder fehlerhafte Pulse-Daten werden unbekannt. Bestehende PRTG-Zustände bleiben erhalten. HTTP ist nur nach ausdrücklicher Auswahl möglich; HTTPS ist bevorzugt. Das Token bleibt im Aggregator, nicht in der Firmware. Standardmässig ist Pulse deaktiviert.
+
+Für die Alarmtexte Display 1.2.0 installieren und den OTA-Start innert 120 Sekunden bestätigen. Vorhandene Einstellungen bleiben erhalten; kein Werksreset nötig. Firmware ist über den Direktkanal und nach Import über den Aggregator verfügbar.
+
+39 Backend-Tests, Desktop-/Mobilbrowser mit synthetischen Daten, Modell-/LVGL-/Einstellungstests, beide PlatformIO-Profile und ESP-IDF 5.5.0 Hardware-Build erfolgreich. Pulse-Adapter lesend gegen Version 5.1.35 geprüft. Physische Display-/OTA-Abnahme dieser Version steht aus. Frühere Releases bleiben unverändert.
+
+
 ## Firmware 1.1.2 – Anzeigeeinstellungen nach Neustart erhalten
 
 Korrigiert die Startreihenfolge: NVS-Speicher und Panel-Konfiguration werden vor den Anzeigeoptionen initialisiert. Gespeicherter Nachtmodus, Messwertverläufe, Seitenwechsel und Favoriten werden dadurch nach Neustart/OTA wieder geladen; ebenso die zentrale Verwaltung. Bisher erfolgte der Lesezugriff zu früh und die Anzeige fiel auf deaktivierte Standardwerte zurück.

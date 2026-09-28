@@ -1,5 +1,16 @@
 # Aggregator-WebAdmin und Firmware-Verwaltung
 
+## Display 1.2.0 / Aggregator 1.4.0 – aktive Pulse-Alarme
+
+Pulse als zusätzliche Quelle unter Dienste: konfigurierbar im WebAdmin mit Serveradresse, Anzeigename und geschütztem Token. Eine Übersicht zählt alle aktiven Alarme; bis zu sechs Detailkarten zeigen System, Meldung, Beginn und Quittierungsstatus. Kritische Alarme stehen zuerst. Die Anbindung ist ausschliesslich lesend.
+
+Fehlende, alte oder fehlerhafte Pulse-Daten werden unbekannt. Bestehende PRTG-Zustände bleiben erhalten. HTTP ist nur nach ausdrücklicher Auswahl möglich; HTTPS ist bevorzugt. Das Token bleibt im Aggregator, nicht in der Firmware. Standardmässig ist Pulse deaktiviert.
+
+Für die Alarmtexte Display 1.2.0 installieren und den OTA-Start innert 120 Sekunden bestätigen. Vorhandene Einstellungen bleiben erhalten; kein Werksreset nötig. Firmware ist über den Direktkanal und nach Import über den Aggregator verfügbar.
+
+39 Backend-Tests, Desktop-/Mobilbrowser mit synthetischen Daten, Modell-/LVGL-/Einstellungstests, beide PlatformIO-Profile und ESP-IDF 5.5.0 Hardware-Build erfolgreich. Pulse-Adapter lesend gegen Version 5.1.35 geprüft. Physische Display-/OTA-Abnahme dieser Version steht aus. Frühere Releases bleiben unverändert.
+
+
 ## Display 1.1.0 und Aggregator 1.3.0
 
 Zentrale Anzeigeeinstellungen pro Display unter dem neuen Register **Displays**: Name, Seitenwechsel, Nachtmodus, UTC-Versatz, Favoriten, Störungsansicht und RAM-Verläufe. Einstellungen bleiben offline gespeichert; das Display bestätigt die Übernahme. WLAN und Zugangsdaten bleiben lokal. [Anleitung](https://github.com/TroRon/PRTGDisplayProject/blob/main/docs/DISPLAY-VERWALTUNG.md).

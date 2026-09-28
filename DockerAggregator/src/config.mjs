@@ -1,3 +1,4 @@
+import {validatePulse} from './pulse.mjs';
 import { readFileSync } from 'node:fs';
 
 export const categories = ['compute', 'backup', 'docker', 'network', 'services'];
@@ -12,7 +13,9 @@ export function validateConfig(config) {
   if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || url.pathname !== '/') {
     throw new Error('CONFIG_PRTG_HTTPS_ORIGIN');
   }
-  if(Object.keys(config).some(k => !['prtg_url','poll_seconds','stale_seconds','request_timeout_seconds','entities'].includes(k))) throw Error('CONFIG_UNKNOWN_FIELD');
+  if(Object.keys(config).some(k => !['prtg_url','poll_seconds','stale_seconds','request_timeout_seconds','entities','pulse'].includes(k))) throw Error('CONFIG_UNKNOWN_FIELD');
+  if(config.pulse!==undefined)validatePulse(config.pulse);
+  if(config.pulse?.enabled&&(config.entities.filter(e=>e.enabled!==false).length>23||config.entities.some(e=>e.id?.startsWith('pulse-'))))throw Error('CONFIG_PULSE_CAPACITY');
   const ids = new Set();
   const sensorIds = new Set();
   for (const entity of config.entities) {

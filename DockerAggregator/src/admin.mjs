@@ -64,7 +64,12 @@ export function createAdmin({origin, token, panelToken, store, runtime, firmware
     }
     if(req.url==='/api/admin/config'&&req.method==='PUT'){
       try{const result=await store.save(await body(req));log('INFO',`Admin: Konfiguration Revision ${result.revision} gespeichert und übernommen.`);return send(res,200,result);}
-      catch(e){const code=errors.has(e.message)?e.message:'SAVE_FAILED';log('WARN','Admin: Konfiguration nicht übernommen.');return send(res,code==='CONFIG_CONFLICT'||code==='SAVE_BUSY'?409:400,{error:code});}
+      catch(e){const code=errors.has(e.message)||['CONFIG_PULSE','CONFIG_PULSE_CAPACITY','PULSE_TOKEN_INVALID','PULSE_TOKEN_REQUIRED'].includes(e.message)?e.message:'SAVE_FAILED';log('WARN','Admin: Konfiguration nicht übernommen.');return send(res,code==='CONFIG_CONFLICT'||code==='SAVE_BUSY'?409:400,{error:code});}
+    }
+    if(req.url==='/api/admin/pulse-test'&&req.method==='POST'){
+      if(runtime.demo)return send(res,200,{message:'Demo-Modus: kein Pulse-Zugriff.'});
+      const client=runtime.current.pulse;if(!client)return send(res,400,{error:'CONFIG_PULSE'});
+      const result=await client.collect();return result.error?send(res,502,{error:result.error}):send(res,200,{message:`Pulse erreichbar: ${result.alerts.length} aktive Alarme; Daten aktuell.`});
     }
     if(req.url==='/api/admin/prtg-test'&&req.method==='POST'){
       if(runtime.demo)return send(res,200,{message:'Demo-Modus: keine Verbindung zu PRTG aufgebaut.'});

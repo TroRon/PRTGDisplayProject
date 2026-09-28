@@ -31,7 +31,7 @@ export function createPollReporter(log) {
     const next = new Map();
     for (const entity of entities) {
       const details = entity.sensors.filter(s => s.status !== 'ok' || s.reason).map(s =>
-        `${label(s.key)}: ${state(s.status)} (${reasons[s.reason] || 'PRTG-Status oder Abfrage prüfen'})`).join('; ');
+        `${label(s.key)}: ${state(s.status)} (${reasons[s.reason] || (s.key==='pulse' ? (s.reason?'Pulse-Abfrage oder Datenfrische prüfen':'Aktiver Pulse-Alarm') : 'PRTG-Status oder Abfrage prüfen')})`).join('; ');
       const signature = `${entity.status}|${details}`;
       next.set(entity.id, signature);
       if (previous.get(entity.id) !== signature) {

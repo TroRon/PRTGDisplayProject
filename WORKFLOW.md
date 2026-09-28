@@ -59,3 +59,5 @@ Freigabe 26.09.2026: Display 1.1.0 und Aggregator 1.3.0 samt Quellen, Dokumentat
 Freigabe 26.09.2026: Firmware 1.1.1 mit unten ausgerichteten Verlaufsbuttons samt Dokumentation, Commit/Push, Release und OTA autorisiert. Aggregator-Software und private PRTG-Änderungen bleiben unverändert.
 
 Freigabe 27.09.2026: Firmware 1.1.2 mit korrigierter Initialisierung persistenter Anzeigeoptionen samt Dokumentation, Commit/Push, Release und OTA autorisiert. Aggregator-Software und private PRTG-Änderungen bleiben unverändert.
+
+Freigabe 28.09.2026: Aggregator 1.4.0 und Firmware 1.2.0 mit Pulse samt Quellen, Dokumentation, Commit/Push, Release/OTA, Deployment und Pulse-Aktivierung autorisiert. Private PBS-Sensoränderungen bleiben ausserhalb dieser Veröffentlichung.

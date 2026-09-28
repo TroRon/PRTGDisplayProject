@@ -19,6 +19,7 @@ try {
   const demo = args.includes('--demo');
   const config = readConfig(process.env.CONFIG_FILE || fileURLToPath(new URL('../../config/aggregator.example.json', import.meta.url)));
   const prtgToken = readSecret(process.env, 'PRTG_API_TOKEN', !demo && !process.env.ADMIN_DIRECTORY);
+  const pulseToken=readSecret(process.env,'PULSE_API_TOKEN',false);
   let client = demo ? null : new PrtgClient(config, prtgToken);
   if (args.includes('--discover')) {
     if(process.env.ADMIN_DIRECTORY){
@@ -34,12 +35,12 @@ try {
     const port = Number(process.env.PORT || 8787);
     if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('INVALID_PORT');
     const panelToken = readSecret(process.env, 'PANEL_API_TOKEN', !demo || !['127.0.0.1', '::1'].includes(host));
-    const runtime = new MonitoringRuntime({config,prtgToken,demo,log});
+    const runtime = new MonitoringRuntime({config,prtgToken,pulseToken,demo,log});
     const adminToken = (process.env.OTA_DIRECTORY || process.env.ADMIN_DIRECTORY) ? readSecret(process.env, 'OTA_ADMIN_TOKEN') : '';
     const firmware = process.env.OTA_DIRECTORY ? createFirmwareService({directory:process.env.OTA_DIRECTORY,adminToken,panelToken,log}) : null;
     let admin = null, displays = null;
     if(process.env.ADMIN_DIRECTORY){
-      const store = await createAdminStore({directory:process.env.ADMIN_DIRECTORY,config,prtgToken,apply:next=>runtime.update(next)});
+      const store = await createAdminStore({directory:process.env.ADMIN_DIRECTORY,config,prtgToken,pulseToken,apply:next=>runtime.update(next)});
       runtime.update(store.effective());
       displays=await createDisplayStore(process.env.ADMIN_DIRECTORY);
       const auth=await createAdminAuth({directory:process.env.ADMIN_DIRECTORY,token:adminToken});

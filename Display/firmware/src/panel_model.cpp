@@ -55,6 +55,9 @@ static bool append(char* target, size_t capacity, const char* format, ...) {
   return written >= 0 && size_t(written) < capacity-used;
 }
 void formatMetric(const char* key, double value, bool available, char* output, size_t capacity) {
+  const char* pulseLabel=!strcmp(key,"critical")?"Kritische Alarme":!strcmp(key,"warning")?"Warnungen":!strcmp(key,"unknown")?"Unbekannt":!strcmp(key,"active")?"Aktive Alarme":!strcmp(key,"more")?"Weitere Alarme":nullptr;
+  if(pulseLabel){if(available)snprintf(output,capacity,"%s: %.0f",pulseLabel,value);else snprintf(output,capacity,"%s: Keine Daten",pulseLabel);return;}
+
   struct Metric { const char* key; const char* label; const char* unit; bool count; };
   static const Metric metrics[] = {
     {"cpu","CPU"," %",false}, {"ram","RAM"," %",false},
@@ -79,6 +82,7 @@ void formatMetric(const char* key, double value, bool available, char* output, s
   trimUtf8(output);
 }
 static const char* reasonText(const char* reason) {
+  if(!strncmp(reason,"PULSE_",6))return !strcmp(reason,"PULSE_ALERTS")?"Aktive Pulse-Alarme":"Pulse-Daten nicht verfügbar oder veraltet";
   if (!strcmp(reason,"STALE")) return "Messwerte sind veraltet";
   if (!strcmp(reason,"NOT_CONFIGURED")) return "Noch nicht eingerichtet";
   if (!strcmp(reason,"CHANNEL_DATA_MISSING")) return "Messwerte fehlen";
@@ -161,6 +165,7 @@ bool parseHealth(const char* json, size_t length, bool allowDemo, int64_t utcNow
         const int64_t observed=timestamp(s["observed_at"]);
         if(observed<=0)timestampsValid=false;else if(!oldest||observed<oldest)oldest=observed;
         const char* reason = s["reason"] | "";
+        if(s["message"].is<const char*>()) completeDetails=append(entity.details,limit,"%s\n",s["message"].as<const char*>())&&completeDetails;
         if (*reason) completeDetails = append(entity.details,limit,"%s\n",reasonText(reason)) && completeDetails;
         for (JsonPair metric : s["metrics"].as<JsonObject>()) {
           char line[128];
@@ -192,7 +197,7 @@ bool parseHealth(const char* json, size_t length, bool allowDemo, int64_t utcNow
   if (!out.complete && calculated == Status::Ok) return false;
   for (JsonObject alert : doc["alerts"].as<JsonArray>()) {
     Status state = Status::Unknown; decode(alert["status"],state); ++out.alertCount;
-    append(out.alerts, sizeof(out.alerts), "%s: %s\n%s\n\n", alert["label"] | "System", statusText(state), reasonText(alert["reason"] | "PRTG_STATUS"));
+    append(out.alerts, sizeof(out.alerts), "%s: %s\n%s\n\n", alert["label"] | "System", statusText(state), alert["message"].is<const char*>()?alert["message"].as<const char*>():reasonText(alert["reason"] | "PRTG_STATUS"));
   }
   out.overall = calculated;
   snprintf(out.message, sizeof(out.message), "%s", out.demo ? "DEMO - synthetische Daten" : "Live-Daten vom Aggregator");
